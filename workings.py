@@ -3,7 +3,7 @@
 
 # # Quick data modification if we just want to jump to the Models with the appropriate data structure
 
-# In[3]:
+# In[1]:
 
 #Note: Attribution for code samples/credit to be added as we go.
 # many based on code sample for ployly, kaggle, sklearn
@@ -1568,7 +1568,12 @@ sns.jointplot(x="price", y="carat", data=diamonds, kind="kde");
 plt.show()
 
 
-# #### Correlations
+# ### Correlations - Pearson
+
+# In[94]:
+
+diamonds.corr()
+
 
 # In[20]:
 
@@ -1641,7 +1646,7 @@ seed=(1976)
 #print(diamonds_test.shape)
 
 
-# In[5]:
+# In[4]:
 
 #Fancy train/test split
 
@@ -1656,7 +1661,7 @@ num_test = 0.30
 diamonds_train, diamonds_test = train_test_split(diamonds,test_size=num_test,random_state=23)
 
 
-# In[6]:
+# In[5]:
 
 #Some Final Encoding based on #https://www.kaggle.com/enerrio/scikit-learn-ml-from-start-to-finish
 
@@ -1691,9 +1696,19 @@ print(diamonds_test.shape)
 diamonds_train.describe()
 
 
-# In[10]:
+# In[18]:
+
+diamonds_test.describe()
 
 
+# In[ ]:
+
+
+
+
+# In[5]:
+
+#Set up our training and test data
 train_X=diamonds_train[['carat','cut','clarity','color','x','y','z','depth','table']]# taking the training data features
 train_y=diamonds_train[['lprice']] # output of our training data
 test_X =diamonds_test[['carat','cut','clarity','color','x','y','z','depth','table']] # taking test data features
@@ -1724,7 +1739,7 @@ test_y.describe()
 str(diamonds_norm_use)
 
 
-# In[13]:
+# In[6]:
 
 
 #Based on following:
@@ -1897,7 +1912,7 @@ print(max_count)
 (diamonds_target_use)
 
 
-# In[407]:
+# In[213]:
 
 #print(__doc__)
 
@@ -1965,6 +1980,11 @@ plt.show()
 # Release memory.
 plt.clf()
 plt.close()
+
+
+# In[214]:
+
+X
 
 
 # In[411]:
@@ -2068,60 +2088,875 @@ str(y_test)
 str(diamonds_norm_matrix)
 
 
-# In[15]:
+# In[180]:
 
-#Linear regression
-#Import Library
-#Import other necessary libraries like pandas, numpy
+train_y.describe()
+
+
+# In[57]:
+
+(train_y.info())
+
+print(np.mean((predictions - test_y) ** 2)))
+
+
+# In[38]:
+
+model_output.head()
+
+
+# In[85]:
+
+#http://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_and_elasticnet.html#sphx-glr-auto-examples-linear-model-plot-lasso-and-elasticnet-py
+#Working Lasso Example 
+
+def model_analysis (model,tag,model_r2_score):
+#     print('Model Score on Training Data')
+
+#     print(model.score(train_X, train_y))
+
+#     print('Coefficients: \n', model.coef_)
+#     print('Intercept: \n', model.intercept_)
+
+#     # The mean squared error
+#     print("Mean squared error: %.2f"
+#       % np.mean((predictions - test_y) ** 2))
+
+#     # Explained variance score: 1 is perfect prediction
+#     print('Variance score: %.2f' % model.score(test_X, test_y))
+
+#     print('\n'*1)
+#     #Root mean Squared error
+#     print ('\nRoot Mean Squared Error')
+
+#     print np.sqrt(metrics.mean_squared_error(test_y,predictions))
+
+
+    mae = metrics.mean_absolute_error(test_y, predictions)
+    mse = metrics.mean_squared_error(test_y, predictions)
+
+#     print('\nMean Absolute Error')
+#     print(mae)
+
+#     print('\nMean Squared Error')
+#     print(mse)
+
+    pred_len=int(len(predictions))
+#     print(pred_len)
+
+    output_columns = ['Model','r^2 on test data','Variance score','Root Mean Squared Error','Mean Absolute Error','Mean Squared Error']
+
+    #df = pd.DataFrame([[1, 2], [3, 4]], columns=list('AB')) 
+    #df.loc[len(df)]=['8/19/2014','Jun','Fly','98765'] 
+    model_output.loc[model_output.shape[0]] = (tag,'{0:.6f}'.format(model_r2_score),'{0:.6f}'.format(model.score(test_X, test_y)),
+                        model.score(test_X, test_y),np.sqrt(metrics.mean_squared_error(test_y,predictions)),(mae),mse)
+    
+    #model_output.append(c(model,model_r2_score,np.mean((predictions - test_y) ** 2),
+                        #model.score(test_X, test_y),np.sqrt(metrics.mean_squared_error(test_y,predictions)),mae,mse))
+    
+    plt.figure(figsize=(12, 6))
+    plt.subplot(1, 2, 1)
+    my_title=('Prediction for Model: %s'%(model))
+    plt.title(my_title +'\n')
+    #plt.title('Prediction')
+    plt.scatter(test_y, pred_test, 
+         label='Prediction Accuracy')
+    plt.legend(loc='upper right')
+    #plt.xlabel('Actual')
+    #plt.ylabel('Predicted')
+
+    plt.show()
+
+    # Release memory.
+    plt.clf()
+    plt.close()
+    
+    #Result obtained after running the algo. Comment the below two lines if you want to run the algo
+    mae_list.append(mae)
+    comb.append(tag)  
+
+
+
+train_X=diamonds_train[['carat','cut','clarity','color','x','y','z','depth','table']]# taking the training data features
+train_y=diamonds_train[['lprice']] # output of our training data
+test_X =diamonds_test[['carat','cut','clarity','color','x','y','z','depth','table']] # taking test data features
+test_y=diamonds_test[['lprice']]  #output value of test data
+
+from sklearn import metrics
+from sklearn.metrics import r2_score
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Ridge
+from sklearn.linear_model import Lasso
+from sklearn.linear_model import ElasticNet
+    
+
+#List of combinations
+comb = []
+
+#Dictionary to store the MAE for all algorithms 
+mae_list = []
+
+output_columns = ['Model','r^2 on test data', 'Model Score on Training Data','Variance score','Root Mean Squared Error','Mean Absolute Error','Mean Squared Error']
+model_output = pd.DataFrame(columns=output_columns)
+
+# print(model_output.head())
+
+
+alpha = 0.1
+linear = LinearRegression()
+tag = 'linear'
+
+pred_test = linear.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_linear = r2_score(test_y, pred_test)
+
+# print(linear)
+# print ('alpha :' , alpha)
+# print("r^2 on test data : %f" % r2_score_linear)
+
+model_r2_score = r2_score_linear
+
+model_analysis(linear,tag,model_r2_score)
+
+print('\n'*1)
+
+
+#Ridge
+alpha = 1.0
+ridge = Ridge(alpha=alpha)
+tag = 'ridge'
+
+pred_test = ridge.fit(train_X, train_y).predict(test_X)
+r2_score_ridge = r2_score(test_y, pred_test)
+
+# print(ridge)
+# print ('alpha :' , alpha)
+# print("r^2 on test data : %f" % r2_score_ridge)
+
+model_r2_score = r2_score_ridge
+
+model_analysis(ridge,tag,model_r2_score)
+
+print('\n'*1)
+
+
+#Lasso
+
+alpha = 0.1
+lasso = Lasso(alpha=alpha)
+tag = 'lasso'
+
+pred_test = lasso.fit(train_X, train_y).predict(test_X)
+r2_score_lasso = r2_score(test_y, pred_test)
+
+# print(lasso)
+# print ('alpha :' , alpha)
+# print("r^2 on test data : %f" % r2_score_lasso)
+
+model_r2_score = r2_score_lasso
+
+model_analysis(lasso,tag,model_r2_score)
+
+print('\n'*1)
+
+# alpha = 1.0
+# lasso = Lasso(alpha=alpha)
+
+# pred_test = lasso.fit(train_X, train_y).predict(test_X)
+# r2_score_lasso = r2_score(test_y, pred_test)
+# print(lasso)
+# print ('alpha :' , alpha)
+# print("r^2 on test data : %f" % r2_score_lasso)
+
+# print('\n'*1)
+
+#ElasticNet
+
+enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
+tag = 'enet'
+
+#y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
+
+pred_test = enet.fit(train_X, train_y).predict(test_X)
+r2_score_enet = r2_score(test_y, pred_test)
+
+# print(enet)
+# print("r^2 on test data : %f" % r2_score_enet)
+
+model_r2_score = r2_score_enet
+
+model_analysis(enet,tag,model_r2_score)
+
+#Unlike most other scores, R^2 score may be negative (it need not actually be the square of a quantity R).
+
+model_output.head()
+
+
+# # Let's try this with only a few predictors  
+
+# In[79]:
+
+#http://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_and_elasticnet.html#sphx-glr-auto-examples-linear-model-plot-lasso-and-elasticnet-py
+#Working Lasso Example 
+
+def model_analysis (model,tag,model_r2_score):
+
+
+    mae = metrics.mean_absolute_error(test_y, predictions)
+    mse = metrics.mean_squared_error(test_y, predictions)
+
+
+    pred_len=int(len(predictions))
+
+    output_columns = ['Model','r^2 on test data','Variance score','Root Mean Squared Error','Mean Absolute Error','Mean Squared Error']
+ 
+    model_output.loc[model_output.shape[0]] = (tag,'{0:.6f}'.format(model_r2_score),'{0:.6f}'.format(model.score(test_X, test_y)),
+                        model.score(test_X, test_y),np.sqrt(metrics.mean_squared_error(test_y,predictions)),(mae),mse)
+    
+    
+    plt.figure(figsize=(12, 6))
+    plt.subplot(1, 2, 1)
+    my_title=('Prediction for Model: %s'%(model))
+    plt.title(my_title +'\n')
+    #plt.title('Prediction')
+    plt.scatter(test_y, pred_test, 
+         label='Prediction Accuracy')
+    plt.legend(loc='upper right')
+    #plt.xlabel('Actual')
+    #plt.ylabel('Predicted')
+
+    plt.show()
+
+    # Release memory.
+    plt.clf()
+    plt.close()
+    
+    #Result obtained after running the algo. Comment the below two lines if you want to run the algo
+    mae_list.append(mae)
+    comb.append(tag)  
+
+
+
+train_X=diamonds_train[['x','cut','color']]# taking the training data features
+train_y=diamonds_train[['lprice']] # output of our training data
+test_X =diamonds_test[['x','cut','color']] # taking test data features
+test_y=diamonds_test[['lprice']]  #output value of test data
+
+# train_X=diamonds_train[['carat','cut','clarity','color','x','y','z','depth','table']]# taking the training data features
+# train_y=diamonds_train[['lprice']] # output of our training data
+# test_X =diamonds_test[['carat','cut','clarity','color','x','y','z','depth','table']] # taking test data features
+# test_y=diamonds_test[['lprice']]  #output value of test data
+
+
+
+from sklearn import metrics
+from sklearn.metrics import r2_score
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Ridge
+from sklearn.linear_model import Lasso
+from sklearn.linear_model import ElasticNet
+    
+
+#List of combinations
+comb = []
+
+#Dictionary to store the MAE for all algorithms 
+mae_list = []
+
+output_columns = ['Model','r^2 on test data', 'Model Score on Training Data','Variance score','Root Mean Squared Error','Mean Absolute Error','Mean Squared Error']
+model_output = pd.DataFrame(columns=output_columns)
+
+# print(model_output.head())
+
+
+alpha = 1.0
+linear = LinearRegression()
+tag = 'linear'
+
+pred_test = linear.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_linear = r2_score(test_y, pred_test)
+
+# print(linear)
+# print ('alpha :' , alpha)
+# print("r^2 on test data : %f" % r2_score_linear)
+
+model_r2_score = r2_score_linear
+
+model_analysis(linear,tag,model_r2_score)
+
+print('\n'*1)
+
+
+#Ridge
+alpha = 1.0
+ridge = Ridge(alpha=alpha)
+tag = 'ridge'
+
+pred_test = ridge.fit(train_X, train_y).predict(test_X)
+r2_score_ridge = r2_score(test_y, pred_test)
+
+# print(ridge)
+# print ('alpha :' , alpha)
+# print("r^2 on test data : %f" % r2_score_ridge)
+
+model_r2_score = r2_score_ridge
+
+model_analysis(ridge,tag,model_r2_score)
+
+print('\n'*1)
+
+
+#Lasso
+
+alpha = 0.1
+lasso = Lasso(alpha=alpha)
+tag = 'lasso'
+
+pred_test = lasso.fit(train_X, train_y).predict(test_X)
+r2_score_lasso = r2_score(test_y, pred_test)
+
+# print(lasso)
+# print ('alpha :' , alpha)
+# print("r^2 on test data : %f" % r2_score_lasso)
+
+model_r2_score = r2_score_lasso
+
+model_analysis(lasso,tag,model_r2_score)
+
+print('\n'*1)
+
+# alpha = 1.0
+# lasso = Lasso(alpha=alpha)
+
+# pred_test = lasso.fit(train_X, train_y).predict(test_X)
+# r2_score_lasso = r2_score(test_y, pred_test)
+# print(lasso)
+# print ('alpha :' , alpha)
+# print("r^2 on test data : %f" % r2_score_lasso)
+
+# print('\n'*1)
+
+#ElasticNet
+
+enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
+tag = 'enet'
+
+#y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
+pred_test= enet.fit(train_X, train_y).predict(test_X)
+r2_score_enet = r2_score(test_y, pred_test)
+
+# print(enet)
+# print("r^2 on test data : %f" % r2_score_enet)
+
+model_r2_score = r2_score_enet
+
+model_analysis(enet,tag,model_r2_score)
+
+#Unlike most other scores, R^2 score may be negative (it need not actually be the square of a quantity R).
+
+model_output.head()
+
+
+# In[ ]:
+
+Lasso(alpha=0.1, copy_X=True, fit_intercept=True, max_iter=1000,
+   normalize=False, positive=False, precompute=False, random_state=None,
+   selection='cyclic', tol=0.0001, warm_start=False)
+
+
+# In[59]:
+
+train
+
+test
+
+
+# # Lasso Cross validation - not fully working
+
+# In[46]:
+
+from sklearn import datasets
+from sklearn.linear_model import LassoCV
+from sklearn.linear_model import Lasso
+from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_score
+
+
+train_X=diamonds_train[['carat','cut','clarity','color','x','y','z','depth','table']]# taking the training data features
+train_y=diamonds_train[['lprice']] # output of our training data
+test_X =diamonds_test[['carat','cut','clarity','color','x','y','z','depth','table']] # taking test data features
+test_y=diamonds_test[['lprice']]  #output value of test data
+
+
+
+lasso = Lasso(random_state=0)
+alphas = np.logspace(-4, -0.5, 30)
+
+scores = list()
+scores_std = list()
+
+n_folds = 3
+
+for alpha in alphas:
+    lasso.alpha = alpha
+    this_scores = cross_val_score(lasso, train_X, train_y, cv=n_folds, n_jobs=1)
+    scores.append(np.mean(this_scores))
+    scores_std.append(np.std(this_scores))
+
+scores, scores_std = np.array(scores), np.array(scores_std)
+
+plt.figure().set_size_inches(8, 6)
+plt.semilogx(alphas, scores)
+
+# plot error lines showing +/- std. errors of the scores
+std_error = scores_std / np.sqrt(n_folds)
+
+plt.semilogx(alphas, scores + std_error, 'b--')
+plt.semilogx(alphas, scores - std_error, 'b--')
+
+# alpha=0.2 controls the translucency of the fill color
+plt.fill_between(alphas, scores + std_error, scores - std_error, alpha=0.2)
+
+plt.ylabel('CV score +/- std error')
+plt.xlabel('alpha')
+plt.axhline(np.max(scores), linestyle='--', color='.5')
+plt.xlim([alphas[0], alphas[-1]])
+
+plt.show()
+
+
+# Release memory.
+plt.clf()
+plt.close()
+
+
+# LassoCV object that sets its alpha parameter automatically 
+# from the data by internal cross-validation
+# # performs cross-validation on the training data it receives).
+# We use external cross-validation to see how much the automatically obtained
+# alphas differ across different cross-validation folds.
+lasso_cv = LassoCV(alphas=alphas, random_state=0)
+k_fold = KFold(3)
+
+#Sselection of Alpha
+
+for k, (train, test) in enumerate(k_fold.split(train_X, train_y)):
+    print(train,test)
+    #lasso_cv.fit(train_X[train], train_y[train])
+    #print("[fold {0}] alpha: {1:.5f}, score: {2:.5f}".
+          #format(k, lasso_cv.alpha_, lasso_cv.score(train_X[test], train_y[test])))
+print()
+print("Answer: Not very much since we obtained different alphas for different")
+print("subsets of the data and moreover, the scores for these alphas differ")
+print("quite substantially.")
+
+plt.show()
+
+
+# In[197]:
+
+for  k, (train, test) in enumerate(k_fold.split(train_X, train_y)):
+    print(k,train,test)
+
+
+# In[90]:
+
+clf.coef_,ols.coef_
+
+
+# In[ ]:
+
+####
+
+
+# In[92]:
+
+from sklearn.linear_model import BayesianRidge, LinearRegression
+
+train_X=diamonds_train[['carat','cut','clarity','color','x','y','z','depth','table']]# taking the training data features
+train_y=diamonds_train[['lprice']] # output of our training data
+test_X =diamonds_test[['carat','cut','clarity','color','x','y','z','depth','table']] # taking test data features
+test_y=diamonds_test[['lprice']]  #output value of test data
+
+
+clf = BayesianRidge(compute_score=True)
+clf.fit(train_X, train_y)
+
+ols = LinearRegression()
+ols.fit(train_X, train_y)
+
+
+lw = 2 #linewidth
+
+# Release memory.
+plt.clf()
+plt.close()
+
+plt.figure(figsize=(6, 5))
+plt.title("Weights of the model")
+plt.plot(clf.coef_, color='lightgreen', linewidth=lw,
+         label="Bayesian Ridge estimate")
+#plt.plot(w, color='gold', linewidth=lw, label="Ground truth")
+plt.plot(ols.coef_, color='navy',linestyle='--', label="OLS estimate")
+plt.xlabel("Features")
+plt.ylabel("Values of the weights")
+plt.legend(loc="best", prop=dict(size=12))
+
+plt.show()
+
+# Release memory.
+plt.clf()
+plt.close()
+
+
+
+
+# In[206]:
+
+train_X.head()
+
+
+# In[101]:
+
+n_features = sfm.transform(X).shape[1]
+print(n_features)
+
+
+# # Feature selection using SelectFromModel and LassoCV - index out of bounds - can't get the feature2
+
+# In[227]:
+
+#Credit # Author: Manoj Kumar <mks542@nyu.edu>
+# License: BSD 3 clause
+
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+#from sklearn.datasets import load_boston
+from sklearn.feature_selection import SelectFromModel
+from sklearn.linear_model import LassoCV
+
+train_X=diamonds_train[['carat','cut','clarity','color','x','y','z','depth','table']]# taking the training data features
+train_y=diamonds_train[['lprice']] # output of our training data
+test_X =diamonds_test[['carat','cut','clarity','color','x','y','z','depth','table']] # taking test data features
+test_y=diamonds_test[['lprice']]  #output value of test data
+
+X=np.array(train_X)
+y=np.array(train_y)
+
+#Reshape out Array from (37741L, 1L)) to 37741L,
+y = np.reshape(y, -1)
+
+
+# We use the base estimator LassoCV since the L1 norm promotes sparsity of features.
+clf = LassoCV()
+
+# Set a minimum threshold of 0.25
+sfm = SelectFromModel(clf, threshold=0.25)
+sfm.fit(X, y)
+n_features = sfm.transform(X).shape[1]
+
+# Reset the threshold till the number of features equals two.
+# Note that the attribute can be set directly instead of repeatedly
+# fitting the metatransformer.
+while n_features > 2:
+    sfm.threshold += 0.1
+    X_transform = sfm.transform(X)
+    n_features = X_transform.shape[1]
+
+# Plot the selected two features from X.
+plt.title(
+    "Features selected from Diamonds using SelectFromModel with "
+    "threshold %0.3f." % sfm.threshold)
+feature1 = X_transform[:, 0]
+feature2 = X_transform[:, 1]
+#feature3 = X_transform[:, 2]
+plt.plot(feature1, feature2, 'r.')
+plt.xlabel("Feature number 1")
+plt.ylabel("Feature number 2")
+plt.ylim([np.min(feature2), np.max(feature2)])
+plt.show()
+
+
+# In[226]:
+
+feature2
+
+
+# In[216]:
+
+sfm.transform(X).shape[1]
+
+
+# In[188]:
+
+my_y = np.reshape(y, -1)
+
+my_y
+
+
+# In[160]:
+
+n_features = sfm.transform(X).shape[1]
+n_features
+
+
+# In[117]:
+
+X=np.array('{:.2f}%'.format(train_X))
+
+X
+
+
+# In[218]:
+
+#import plotly.plotly as py
+#import plotly.graph_objs as go
+
+import numpy as np
+from sklearn.datasets import load_boston
+from sklearn.feature_selection import SelectFromModel
+from sklearn.linear_model import LassoCV
+
+# Load the boston dataset.
+boston = load_boston()
+X, y = boston['data'], boston['target']
+
+df_temp = pd.DataFrame(X)
+df_temp2 = pd.DataFrame(y)
+# We use the base estimator LassoCV since the L1 norm promotes sparsity of features.
+clf = LassoCV()
+
+# Set a minimum threshold of 0.25
+sfm = SelectFromModel(clf, threshold=0.25)
+sfm.fit(X, y)
+n_features = sfm.transform(X).shape[1]
+
+# Reset the threshold till the number of features equals two.
+# Note that the attribute can be set directly instead of repeatedly
+# fitting the metatransformer.
+while n_features > 2:
+    sfm.threshold += 0.1
+    X_transform = sfm.transform(X)
+    n_features = X_transform.shape[1]
+
+
+# # Principal Component Analysis
+
+# In[229]:
+
+train_X.head()
+
+
+# In[244]:
+
+print(__doc__)
+
+
+# Code source: Gaël Varoquaux
+# License: BSD 3 clause
+
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+
+from sklearn import decomposition
+from sklearn import datasets
+
+np.random.seed(5)
+
+centers = [[1, 1], [-1, -1], [1, -1]]
+#iris = datasets.load_iris()
+X=np.array(train_X)
+y=np.array(train_y)
+
+fig = plt.figure(1, figsize=(4, 3))
+plt.clf()
+ax = Axes3D(fig, rect=[0, 0, .95, 1], elev=48, azim=134)
+
+plt.cla()
+pca = decomposition.PCA(n_components=3)
+pca.fit(X)
+X = pca.transform(X)
+
+for name, label in [('x', 0), ('cut', 1), ('clarity', 2)]:
+    ax.text3D(X[y == label, 0].mean(),
+              X[y == label, 1].mean() + 1.5,
+              X[y == label, 2].mean(), name,
+              horizontalalignment='center',
+              bbox=dict(alpha=.5, edgecolor='w', facecolor='w'))
+# Reorder the labels to have colors matching the cluster results
+y = np.choose(y, [1, 2, 0]).astype(np.float)
+ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=y, cmap=plt.cm.spectral)
+
+ax.w_xaxis.set_ticklabels([])
+ax.w_yaxis.set_ticklabels([])
+ax.w_zaxis.set_ticklabels([])
+
+plt.show()
+
+
+# In[247]:
+
+train_X
+
+
+# In[243]:
+
+print(pca.fit(X).score)
+
+
+# In[248]:
+
+print(__doc__)
+
+
+# Code source: Gaël Varoquaux
+# License: BSD 3 clause
+
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+
+from sklearn import decomposition
+from sklearn import datasets
+
+np.random.seed(5)
+
+centers = [[1, 1], [-1, -1], [1, -1]]
+iris = datasets.load_iris()
+X = iris.data
+y = iris.target
+
+fig = plt.figure(1, figsize=(4, 3))
+plt.clf()
+ax = Axes3D(fig, rect=[0, 0, .95, 1], elev=48, azim=134)
+
+plt.cla()
+pca = decomposition.PCA(n_components=3)
+pca.fit(X)
+X = pca.transform(X)
+
+for name, label in [('Setosa', 0), ('Versicolour', 1), ('Virginica', 2)]:
+    ax.text3D(X[y == label, 0].mean(),
+              X[y == label, 1].mean() + 1.5,
+              X[y == label, 2].mean(), name,
+              horizontalalignment='center',
+              bbox=dict(alpha=.5, edgecolor='w', facecolor='w'))
+# Reorder the labels to have colors matching the cluster results
+y = np.choose(y, [1, 2, 0]).astype(np.float)
+ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=y, cmap=plt.cm.spectral)
+
+ax.w_xaxis.set_ticklabels([])
+ax.w_yaxis.set_ticklabels([])
+ax.w_zaxis.set_ticklabels([])
+
+plt.show()
+
+
+# In[249]:
+
+iris.data
+
+
+# In[209]:
+
+X_transform.shape[1]
+
+
+# In[196]:
+
+X.shape,y.shape
+y
+
+
+# In[153]:
+
+#sfm.fit(X, y)
+n_features = sfm.transform(X).shape[0]
+n_features
+#df_temp.info()
+#sfm.transform(X).shape[1]
+
+
+# In[ ]:
+
+###Lets Try and see if we have any multicolinearity
+
+
+# In[87]:
+
+data_X = train_X
+
+
+# In[159]:
+
+clf.describe()
+
+
+# In[146]:
+
+data_X.head(),train_X.head()
+
+
+# In[153]:
+
+#https://etav.github.io/python/vif_factor_python.html
+
+#Imports
+#import pandas as pd
+import numpy as np
+from patsy import dmatrices
+import statsmodels.api as sm
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 from sklearn import linear_model
-#from sklearn.linear_model import Ridge
-#from sklearn.linear_model import Lasso
-
+from sklearn import ensemble
 from sklearn import metrics
 
 
-def model_predict(clf,tag):
-    
-    if tag == 'linear':
-        
-        print('\n'*1)
-        print ('#################### Linear Model #################### ')
-        
-    if tag == 'ridge':
-        print('\n'*1)
-        print ('/n#################### Ridge Model #################### ')
-        
-    if tag == 'lasso':
-        
-        print('\n'*1)
-        print ('/n#################### Lasso Model #################### ')
+
+#Steps for Implementing VIF
+
+#Run a multiple regression.
+#Calculate the VIF factors.
+#Inspect the factors for each predictor variable
+#If the VIF is between 5-10, multicolinearity is likely present and you should consider dropping the variable.
+
+#Set up our training and test data
 
     
-    # Train the model using the training sets and check score
-    clf.fit(train_X, train_y)
+
+def model_predict(data_X,data_y,tag):
+    clf = linear_model.LinearRegression()
+    clf.fit(data_X, data_y)
 
     print('\n'*1)
 
+    print('Model')
+    
+    clf
+    
+    print('\n'*1)
+    
     print('Model Score')
 
     clf.score(train_X, train_y)
 
+    print('\n'*1)
+    
     #Predict Output
     predictions= clf.predict(test_X)
 
     pred_train = clf.predict(train_X)
     pred_test= clf.predict(test_X)
 
-    #show_coefficients(clf,tag)
-
-         
-#def output_coeffcients(model,tag):
-    # #Equation coefficient and Intercept
-    #The coefficients
-
-
-    
     print('\n'*1)
+    
+    
 
     print('Coefficients: \n', clf.coef_)
     print('Intercept: \n', clf.intercept_)
@@ -2148,425 +2983,179 @@ def model_predict(clf,tag):
     print('\nMean Squared Error')
     print(mse)
 
-    pred_len=int(len(predictions))
-    print(pred_len)
-
-    plt.figure(figsize=(12, 6))
-    plt.subplot(1, 2, 1)
-    plt.title('Prediction')
-
-    plt.scatter(test_y, pred_test, 
-         label='Prediction Accuracy')
-    plt.legend(loc='upper right')
-    #plt.xlabel('Actual')
-    #plt.ylabel('Predicted')
-
-    plt.show()
-    
-        
-    #Result obtained after running the algo. Comment the below two lines if you want to run the algo
-    mae_list.append(mae)
-    comb.append(tag)  
-
-   
-    
-#def show_coefficients(model,tag):
-
-    #output_coeffcients(model,tag)
-
-
-#List of combinations
-comb = []
-
-#Dictionary to store the MAE for all algorithms 
-mae_list = []
-
-clf=None
-
-# Create linear regression object
-print('Linear Score')
-tag = 'linear'
-
-clf = linear_model.LinearRegression()
-#create models and train
-model_predict(clf,tag)
-
-
-
-clf=None
-# Create Ridge regression model and train
-print('Ridge Score')
-tag = 'ridge'
-
-clf = linear_model.Ridge(alpha = 1.0)
-#create models and train
-model_predict(clf,tag)
-
-
-#Plot the MAE of all combinations
-fig, ax = plt.subplots()
-plt.plot(mae_list)
-#Set the tick names to names of combinations
-ax.set_xticks(range(len(comb)))
-ax.set_xticklabels(comb,rotation='vertical')
-#Plot the accuracy for all combinations
-plt.show()    
-
-# Release memory.
-plt.clf()
-plt.close()
-
-
-##### not working 
-clf=None
-#create Lasso model and train
-print('Lasso Score')
-tag = 'lasso'
-
-clf = linear_model.Lasso(alpha = 1.0)
-#create models and train
-model_predict(clf,tag)
-
-
-#Plot the MAE of all combinations
-fig, ax = plt.subplots()
-plt.plot(mae_list)
-#Set the tick names to names of combinations
-ax.set_xticks(range(len(comb)))
-ax.set_xticklabels(comb,rotation='vertical')
-#Plot the accuracy for all combinations
-plt.show()    
-
-# Release memory.
-plt.clf()
-plt.close()
-
-
-# # Rough Code to see where my error is in Lasso
-
-# In[16]:
-
-
-
-#Linear regression
-#Import Library
-#Import other necessary libraries like pandas, numpy
-from sklearn import linear_model
-from sklearn.linear_model import Ridge
-from sklearn.linear_model import Lasso
-
-from sklearn import metrics
-
-
-def show_coefficients(model):
-
-    if model == 'linear':
-        print ('Linear')
-         
-        # #Equation coefficient and Intercept
-        #The coefficients
-
-        print('\n'*1)
-
-        print('Coefficients: \n', linear.coef_)
-        print('Intercept: \n', linear.intercept_)
-        # The mean squared error
-        print("Mean squared error: %.2f"
-          % np.mean((predictions - test_y) ** 2))
-
-        # Explained variance score: 1 is perfect prediction
-        print('Variance score: %.2f' % linear.score(test_X, test_y))
-
-        print('\n'*1)
-        #Root mean Squared error
-        print ('\nRoot Mean Squared Error')
-
-        print np.sqrt(metrics.mean_squared_error(test_y,predictions))
-
-
-        mae = metrics.mean_absolute_error(test_y, predictions)
-        mse = metrics.mean_squared_error(test_y, predictions)
-
-        print('\nMean Absolute Error')
-        print(mae)
-
-        print('\nMean Squared Error')
-        print(mse)
-
-        pred_len=int(len(predictions))
-        print(pred_len)
-
-        #Result obtained after running the algo. Comment the below two lines if you want to run the algo
-        mae_list.append(mae)
-        comb.append("LR" )  
-        
-    else:
-        print ('Not')
-        # The coefficients
-        print('\n'*1)
-
-        print('Coefficients: \n', clf.coef_)
-        print('Intercept: \n', clf.intercept_)
-        # The mean squared error
-        print("Mean squared error: %.2f"
-              % np.mean((predictions - test_y) ** 2))
-
-        # Explained variance score: 1 is perfect prediction
-        print('Variance score: %.2f' % clf.score(test_X, test_y))
-
-        print('\n'*1)
-        #Root mean Squared error
-        print ('\nRoot Mean Squared Error')
-
-        print np.sqrt(metrics.mean_squared_error(test_y,predictions))
-
-        #print('###############')
-
-        #model = LinearRegression().fit(X_train, y_train)
-        #predictions = model.predict(X_test)
-        mae = metrics.mean_absolute_error(test_y, predictions)
-        mse = metrics.mean_squared_error(test_y, predictions)
-
-        print('\nMean Absolute Error')
-        print(mae)
-
-        print('\nMean Squared Error')
-        print(mse)
-
-        pred_len=int(len(predictions))
-        print(pred_len)
-
-        #Result obtained after running the algo. Comment the below two lines if you want to run the algo
-        mae_list.append(mae)
-        comb.append("Ridge" )   
-
-
-
-
-#List of combinations
-comb = []
-
-#Dictionary to store the MAE for all algorithms 
-mae_list = []
-
-
-# Create linear regression object
-model = 'linear'
-linear = linear_model.LinearRegression()
-# Train the model using the training sets and check score
-linear.fit(train_X, train_y)
-
-print('\n'*1)
-
-print('Linear Score')
-
-linear.score(train_X, train_y)
-
-
-#Predict Output
-predictions= linear.predict(test_X)
-
-pred_train = linear.predict(train_X)
-pred_test= linear.predict(test_X)
-
-show_coefficients('linear')
-
-
-
-# Create Ridge regression model and train
-print('Ridge Score')
-model = 'ridge'
-#create models and train
-clf = Ridge(alpha = 1.0)
-#Ridge
-clf.fit(train_X, train_y)#Ridge
-
-#evaluate on development set
-#Predict Output
-predictions= clf.predict(test_X)
-
-show_coefficients('ridge')
-#Y = clf.predict(X_dev)
-
- 
-#sq_diff = np.square(np.log(prices_dev) - np.log(Y))
-#error = np.sqrt(np.sum(sq_diff) / prices_dev.shape[0])
-#error
-
-
-#create Lasso model and train
-model = 'lasso'
-print('Lasso Score')
 clf = None
-clf = Lasso(alpha = 1.0)
-clf
-clf.fit(train_X, train_y)
 
-#evaluate on development set
-#Predict Output
-predictions= clf.predict(test_X)
-#Y = clf.predict(X_dev)
+# Create linear regression object
+print('Linear Regression all predictors')
+tag = 'Linear Model all predictors'
 
-# The coefficients
-print('\n'*1)
-
-print('Coefficients: \n', clf.coef_)
-print('Intercept: \n', linear.intercept_)
-# The mean squared error
-print("Mean squared error: %.2f"
-      % np.mean((predictions - test_y) ** 2))
-
-# Explained variance score: 1 is perfect prediction
-print('Variance score: %.2f' % clf.score(test_X, test_y))
-
-print('\n'*1)
-#Root mean Squared error
-print ('\nRoot Mean Squared Error')
-
-print np.sqrt(metrics.mean_squared_error(test_y,predictions))
-
-#print('###############')
-
-#model = LinearRegression().fit(X_train, y_train)
-#predictions = model.predict(X_test)
-mae = metrics.mean_absolute_error(test_y, predictions)
-mse = metrics.mean_squared_error(test_y, predictions)
-
-print('\nMean Absolute Error')
-print(mae)
-
-print('\nMean Squared Error')
-print(mse)
-
-pred_len=int(len(predictions))
-print(pred_len)
-
-#Result obtained after running the algo. Comment the below two lines if you want to run the algo
-mae_list.append(mae)
-comb.append("Lasso" )    
+train_X=diamonds_train[['carat','cut','clarity','color','x','y','z','depth','table']]# taking the training data features
+train_y=diamonds_train[['lprice']] # output of our training data
+test_X =diamonds_test[['carat','cut','clarity','color','x','y','z','depth','table']] # taking test data features
+test_y=diamonds_test[['lprice']]  #output value of test data
 
 
-#Plot the MAE of all combinations
-fig, ax = plt.subplots()
-plt.plot(mae_list)
-#Set the tick names to names of combinations
-ax.set_xticks(range(len(comb)))
-ax.set_xticklabels(comb,rotation='vertical')
-#Plot the accuracy for all combinations
-plt.show()    
+model_predict(train_X,train_y,tag)
 
-# Release memory.
-plt.clf()
-plt.close()
+#gather features
+features = "+".join(train_X.columns) # - ["train_y"])
+label = "".join(train_y.columns)
 
 
-#pred_len=(len(predictions))
+#%%capture
+
+# get y and X dataframes based on this regression:
+y, X = dmatrices(label + '~' + features, diamonds, return_type='dataframe')
+
+# For each X, calculate VIF and save in dataframe
+vif = pd.DataFrame()
+vif["VIF Factor"] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
+vif["features"] = X.columns
 
 
-#fig, ax = plt.subplots()
-#for a in [predictions, test_y]:
-    #sns.distplot(a, bins=range(len(predictions)), ax=ax, kde=True)
-#ax.set_xlim([0, 100])
+print(vif.round(1))
+
+print("\n"*3)
+
+clf=None
+
+# Create linear regression object
+print('Linear Regression all -depth')
+tag = 'Linear Model - depth'
 
 
-#for col_id in predictions.columns:
-    #sns.distplot(predictions[col_id])
+train_X=diamonds_train[['carat','cut','clarity','color','x','y','z','table']]# taking the training data features
+train_y=diamonds_train[['lprice']] # output of our training data
+test_X =diamonds_test[['carat','cut','clarity','color','x','y','z','table']] # taking test data features
+test_y=diamonds_test[['lprice']]  #output value of test data
 
-#plt.hist(predictions, alpha=0.5, color='red', cumulative=True, normed=True, bins=16175, histtype='stepfilled', stacked=True)
-
-#plt.show()
-
-#plt.hist(test_y, alpha=0.5, color='blue', cumulative=True, normed=True, bins=16175, histtype='stepfilled', stacked=True)
-#plt.show()
-#_ = plt.hist(predictions, alpha=0.5, color='red', cumulative=True, normed=True, bins=len(predictions), histtype='stepfilled', stacked=True)
-#_ = plt.hist(test_y, alpha=0.5, color='blue', cumulative=True, normed=True, bins=len(predictions), histtype='stepfilled', stacked=True)
+model_predict(train_X,train_y,tag)
 
 
+#%%capture
+#gather features
+features = "+".join(train_X.columns  - ["depth"])
 
-#caret
-#AIC
-#AIC(linear)
+#Pick out lable                    
+label = "".join(train_y.columns)
+# get y and X dataframes based on this regression:
+y, X = dmatrices(label + '~' + features, diamonds, return_type='dataframe')
 
-#linear.fit(X_parameters, Y_parameters)
-#plt.scatter(train_X, train_y,color='blue')
-#plt.plot(train_X,linear.predict(test_X),color='red',linewidth=4)
-#plt.xticks(())
-#plt.yticks(())
-#plt.show()
+# For each X, calculate VIF and save in dataframe
+vif = pd.DataFrame()
+vif["VIF Factor"] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
+vif["features"] = X.columns
 
-# Plot outputs
-#plt.scatter(test_X, test_y,  color='black')
-#plt.plot(test_X, prediction, color='blue',linewidth=3)
+print(vif.round(1))
 
-#plt.xticks(())
-#plt.yticks(())
+print("\n"*3)
 
-#plt.show()
+# Create linear regression object
+print('Linear Regression all -color')
+tag = 'Linear Model - color'
+
+train_X=diamonds_train[['carat','cut','clarity','x','y','z','depth','table']]# taking the training data features
+train_y=diamonds_train[['lprice']] # output of our training data
+test_X =diamonds_test[['carat','cut','clarity','x','y','z','depth','table']] # taking test data features
+test_y=diamonds_test[['lprice']]  #output value of test data
+
+data_y = train_y
+model_predict(train_X,train_y,tag)
+
+#clf = linear_model.LinearRegression()
 
 
-#accuracy of our Linear Regression  Can't use metrics.accuracy_score
-#print('The accuracy of the Linear Regression is',metrics.accuracy_score(prediction,test_y))
+#%%capture
+#gather features
+features = "+".join(train_X.columns  - ["color"])
 
-#Can't use continuous and binary  so clf is out
-#predictions = clf.predict(test_X)
-#print(accuracy_score(test_y, predictions))
+#Pick out lable                    
+label = "".join(train_y.columns)
+# get y and X dataframes based on this regression:
+y, X = dmatrices(label + '~' + features, diamonds, return_type='dataframe')
 
-#print classification_report(test_y, prediction)
+# For each X, calculate VIF and save in dataframe
+vif = pd.DataFrame()
+vif["VIF Factor"] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
+vif["features"] = X.columns
 
-#from sklearn.metrics import classification_report
-#classificationReport = classification_report(test_y, prediction)# target_names=target_names)
-
-#plot_classification_report(classificationReport)
+print(vif.round(1))
 
 
 
-#Linear Score
-#('Coefficient: \n', array([[-0.43835167,  0.002586  ,  0.02803656, -0.02800461,  0.22426456,
-         #0.25589893,  0.16980327,  0.00876309, -0.00236092]]))
-#('Intercept: \n', array([-0.0693151]))
+
+# Create linear regression object
+print('Linear Regression all -minimum')
+tag = 'Linear Model - color'
+
+train_X=diamonds_train[['carat','cut','clarity','x','y','z']]# taking the training data features
+train_y=diamonds_train[['lprice']] # output of our training data
+test_X =diamonds_test[['carat','cut','clarity','x','y','z']] # taking test data features
+test_y=diamonds_test[['lprice']]  #output value of test data
+
+data_y = train_y
+model_predict(train_X,train_y,tag)
+
+#clf = linear_model.LinearRegression()
 
 
-#('Coefficients: \n', array([[-0.43835167,  0.002586  ,  0.02803656, -0.02800461,  0.22426456,
-         #0.25589893,  0.16980327,  0.00876309, -0.00236092]]))
-#Mean squared error: 0.01
-#Variance score: 0.96
+#%%capture
+#gather features
+features = "+".join(train_X.columns  - ["color"])
+
+#Pick out lable                    
+label = "".join(train_y.columns)
+# get y and X dataframes based on this regression:
+y, X = dmatrices(label + '~' + features, diamonds, return_type='dataframe')
+
+# For each X, calculate VIF and save in dataframe
+vif = pd.DataFrame()
+vif["VIF Factor"] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
+vif["features"] = X.columns
+
+print(vif.round(1))
 
 
 
-#Root Mean Squared Error
-#0.0901745324925
+#As expected, there is evidence of multicolinearity.
+#A high variance inflation factor indicates they "explain" the same variance within this dataset. 
+#We would need to discard one of these variables before moving on to model building or 
+#risk building a model with high multicolinearity.
 
-#Mean Absolute Error
-#0.0679633207308
 
-#Mean Squared Error
-#0.00813144631024
-#16175
+# In[37]:
+
+vif[vif>5]
 
 
 # In[ ]:
 
-Linear Score
-Linear
-
-
-('Coefficients: \n', array([[-0.43835167,  0.002586  ,  0.02803656, -0.02800461,  0.22426456,
-         0.25589893,  0.16980327,  0.00876309, -0.00236092]]))
-('Intercept: \n', array([-0.0693151]))
-Mean squared error: 0.01
-Variance score: 0.96
 
 
 
-Root Mean Squared Error
-0.0901745324925
+# In[ ]:
 
-Mean Absolute Error
-0.0679633207308
+# Linear Score
+# Linear
 
-Mean Squared Error
-0.00813144631024
-16175
+
+# ('Coefficients: \n', array([[-0.43835167,  0.002586  ,  0.02803656, -0.02800461,  0.22426456,
+#          0.25589893,  0.16980327,  0.00876309, -0.00236092]]))
+# ('Intercept: \n', array([-0.0693151]))
+# Mean squared error: 0.01
+# Variance score: 0.96
+
+
+
+# Root Mean Squared Error
+# 0.0901745324925
+
+# Mean Absolute Error
+# 0.0679633207308
+
+# Mean Squared Error
+# 0.00813144631024
+# 16175
 
 
 # In[ ]:
@@ -2692,10 +3281,6 @@ pd.DataFrame(zip(test_y,predictions),columns=['lprice','predicted value'])
 
 #pred_df['Price']=np.exp(test_y)
 
-
-
-
-
 #pred_df
 
 
@@ -2705,11 +3290,6 @@ from math import exp, expm1, log
 pd.DataFrame(zip(test_y,predictions),columns=['lprice','predicted value'])
 
 #log(10,3.617734)
-
-
-# In[184]:
-
-
 
 
 # # Our Classification Models on Ideal cut (True/False)
@@ -3077,7 +3657,7 @@ print('The accuracy of the last KFold is',metrics.accuracy_score(prediction,test
 
 
 
-# In[32]:
+# In[3]:
 
 #Import Library
 #Import other necessary libraries like pandas, numpy...
@@ -3085,7 +3665,7 @@ from sklearn import tree
 #Assumed you have, X (predictor) and Y (target) for training data set and x_test(predictor) of test_dataset
 # Create tree object 
 #model = tree.DecisionTreeClassifier(criterion='gini') # for classification, here you can change the algorithm as gini or entropy (information gain) by default it is gini  
-model = tree.DecisionTreeRegressor() for regression
+model = tree.DecisionTreeRegressor() #for regression
 # Train the model using the training sets and check score
 model.fit(train_X, train_y)
 model.score(train_X, train_y)
@@ -3093,7 +3673,538 @@ model.score(train_X, train_y)
 predicted= model.predict(test_X)
 
 
+# # Rough Code to see where my error is in Lasso
+
 # In[ ]:
 
 
+
+
+# In[32]:
+
+#Linear regression
+#Import Library
+#Import other necessary libraries like pandas, numpy
+from sklearn import linear_model
+from sklearn.linear_model import Ridge
+from sklearn.linear_model import Lasso
+
+from sklearn import metrics
+
+
+def model_predict(clf,tag):
+    
+    if tag == 'linear':
+        
+        print('\n'*1)
+        print ('#################### Linear Model #################### ')
+        
+    if tag == 'ridge':
+        clf.alpha = 0.0
+        print('\n'*1)
+        print ('/n#################### Ridge Model #################### ')
+        
+    if tag == 'lasso':
+
+        #from sklearn import linear_model, datasets
+        #clf = linear_model.LassoCV()
+
+        #clf.fit(train_X, train_y)
+        #LassoCV(alphas=array([ 2.14804,  2.00327, ...,  0.0023 ,  0.00215]),
+        #LassoCV(alphas=array([ 2.14804,  2.00327, ...,  0.0023 ,  0.00215]),
+        #    copy_X=True, cv=None, eps=0.001, fit_intercept=True, max_iter=1000,
+        #    n_alphas=100, normalize=False, precompute='auto', tol=0.0001,
+        #    verbose=False)
+        # The estimator chose automatically its lambda:
+        #clf.alpha  
+        
+        #we set as 1.0
+        #clf.alpha = 1.0
+        #clf.fit(train_X, train_y)
+    
+    
+          
+        print('\n'*1)
+        print ('/n#################### Lasso Model #################### ')
+
+    
+    # Train the model using the training sets and check score
+    clf.fit(train_X, train_y)
+
+    print('\n'*1)
+
+    print('Model')
+    
+    print(clf)
+    
+    print('\n'*1)
+
+    print('Model Score')
+
+    clf.score(train_X, train_y)
+
+    #Predict Output
+    predictions= clf.predict(test_X)
+
+    pred_train = clf.predict(train_X)
+    pred_test= clf.predict(test_X)
+
+    
+    print('\n'*1)
+
+    print('Coefficients: \n', clf.coef_)
+    print('Intercept: \n', clf.intercept_)
+    # The mean squared error
+    print("Mean squared error: %.2f"
+      % np.mean((predictions - test_y) ** 2))
+
+    # Explained variance score: 1 is perfect prediction
+    print('Variance score: %.2f' % clf.score(test_X, test_y))
+
+    print('\n'*1)
+    #Root mean Squared error
+    print ('\nRoot Mean Squared Error')
+
+    print np.sqrt(metrics.mean_squared_error(test_y,predictions))
+
+
+    mae = metrics.mean_absolute_error(test_y, predictions)
+    mse = metrics.mean_squared_error(test_y, predictions)
+
+    print('\nMean Absolute Error')
+    print(mae)
+
+    print('\nMean Squared Error')
+    print(mse)
+
+    pred_len=int(len(predictions))
+    print(pred_len)
+
+    plt.figure(figsize=(12, 6))
+    plt.subplot(1, 2, 1)
+    plt.title('Prediction')
+
+    plt.scatter(test_y, pred_test, 
+         label='Prediction Accuracy')
+    plt.legend(loc='upper right')
+    #plt.xlabel('Actual')
+    #plt.ylabel('Predicted')
+
+    plt.show()
+    
+        
+    #Result obtained after running the algo. Comment the below two lines if you want to run the algo
+    mae_list.append(mae)
+    comb.append(tag)  
+
+   
+    
+
+#List of combinations
+comb = []
+
+#Dictionary to store the MAE for all algorithms 
+mae_list = []
+
+clf=None
+
+# Create linear regression object
+print('Linear Score')
+tag = 'linear'
+
+train_X=diamonds_train[['carat','cut','clarity','color','x','y','z','depth','table']]# taking the training data features
+train_y=diamonds_train[['lprice']] # output of our training data
+test_X =diamonds_test[['carat','cut','clarity','color','x','y','z','depth','table']] # taking test data features
+test_y=diamonds_test[['lprice']]  #output value of test data
+
+
+clf = linear_model.LinearRegression()
+#create models and train
+model_predict(clf,tag)
+
+
+
+clf=None
+# Create Ridge regression model and train
+print('Ridge Score')
+tag = 'ridge'
+
+train_X=diamonds_train[['carat','cut','clarity','color','x','y','z','depth','table']]# taking the training data features
+train_y=diamonds_train[['lprice']] # output of our training data
+test_X =diamonds_test[['carat','cut','clarity','color','x','y','z','depth','table']] # taking test data features
+test_y=diamonds_test[['lprice']]  #output value of test data
+
+
+
+clf = linear_model.Ridge(alpha = 1.0)
+#create models and train
+model_predict(clf,tag)
+
+
+#Plot the MAE of all combinations
+fig, ax = plt.subplots()
+plt.plot(mae_list)
+#Set the tick names to names of combinations
+ax.set_xticks(range(len(comb)))
+ax.set_xticklabels(comb,rotation='vertical')
+#Plot the accuracy for all combinations
+plt.show()    
+
+# Release memory.
+plt.clf()
+plt.close()
+
+
+##### not working 
+clf=None
+#create Lasso model and train
+print('Lasso Score')
+tag = 'lasso'
+
+train_X=diamonds_train[['carat','cut','clarity','color','x','y','z','depth','table']]# taking the training data features
+train_y=diamonds_train[['lprice']] # output of our training data
+test_X =diamonds_test[['carat','cut','clarity','color','x','y','z','depth','table']] # taking test data features
+test_y=diamonds_test[['lprice']]  #output value of test data
+
+
+
+
+clf=None
+
+alpha = 1.0
+#alpha=1.0
+
+#clf = Lasso(alpha = alpha)
+#clf = Lasso(alpha=alpha)
+
+print('Lasso Model')
+
+print(clf)
+
+
+###############################
+
+alpha = 0.1
+lasso = Lasso(alpha=alpha)
+clf=lasso
+#pred_test = lasso.fit(train_X, train_y).predict(test_X)
+
+#print(pred_test)
+
+#create models and train
+model_predict(clf,tag)
+
+
+#Plot the MAE of all combinations
+fig, ax = plt.subplots()
+plt.plot(mae_list)
+#Set the tick names to names of combinations
+ax.set_xticks(range(len(comb)))
+ax.set_xticklabels(comb,rotation='vertical')
+#Plot the accuracy for all combinations
+plt.show()    
+
+# Release memory.
+plt.clf()
+plt.close()
+
+
+# In[16]:
+
+
+
+#Linear regression
+#Import Library
+#Import other necessary libraries like pandas, numpy
+from sklearn import linear_model
+from sklearn.linear_model import Ridge
+from sklearn.linear_model import Lasso
+
+from sklearn import metrics
+
+
+def show_coefficients(model):
+
+    if model == 'linear':
+        print ('Linear')
+         
+        # #Equation coefficient and Intercept
+        #The coefficients
+
+        print('\n'*1)
+
+        print('Coefficients: \n', linear.coef_)
+        print('Intercept: \n', linear.intercept_)
+        # The mean squared error
+        print("Mean squared error: %.2f"
+          % np.mean((predictions - test_y) ** 2))
+
+        # Explained variance score: 1 is perfect prediction
+        print('Variance score: %.2f' % linear.score(test_X, test_y))
+
+        print('\n'*1)
+        #Root mean Squared error
+        print ('\nRoot Mean Squared Error')
+
+        print np.sqrt(metrics.mean_squared_error(test_y,predictions))
+
+
+        mae = metrics.mean_absolute_error(test_y, predictions)
+        mse = metrics.mean_squared_error(test_y, predictions)
+
+        print('\nMean Absolute Error')
+        print(mae)
+
+        print('\nMean Squared Error')
+        print(mse)
+
+        pred_len=int(len(predictions))
+        print(pred_len)
+
+        #Result obtained after running the algo. Comment the below two lines if you want to run the algo
+        mae_list.append(mae)
+        comb.append("LR" )  
+        
+    else:
+        print ('Not')
+        # The coefficients
+        print('\n'*1)
+
+        print('Coefficients: \n', clf.coef_)
+        print('Intercept: \n', clf.intercept_)
+        # The mean squared error
+        print("Mean squared error: %.2f"
+              % np.mean((predictions - test_y) ** 2))
+
+        # Explained variance score: 1 is perfect prediction
+        print('Variance score: %.2f' % clf.score(test_X, test_y))
+
+        print('\n'*1)
+        #Root mean Squared error
+        print ('\nRoot Mean Squared Error')
+
+        print np.sqrt(metrics.mean_squared_error(test_y,predictions))
+
+        #print('###############')
+
+        #model = LinearRegression().fit(X_train, y_train)
+        #predictions = model.predict(X_test)
+        mae = metrics.mean_absolute_error(test_y, predictions)
+        mse = metrics.mean_squared_error(test_y, predictions)
+
+        print('\nMean Absolute Error')
+        print(mae)
+
+        print('\nMean Squared Error')
+        print(mse)
+
+        pred_len=int(len(predictions))
+        print(pred_len)
+
+        #Result obtained after running the algo. Comment the below two lines if you want to run the algo
+        mae_list.append(mae)
+        comb.append("Ridge" )   
+
+
+
+
+#List of combinations
+comb = []
+
+#Dictionary to store the MAE for all algorithms 
+mae_list = []
+
+
+# Create linear regression object
+model = 'linear'
+linear = linear_model.LinearRegression()
+# Train the model using the training sets and check score
+linear.fit(train_X, train_y)
+
+print('\n'*1)
+
+print('Linear Score')
+
+linear.score(train_X, train_y)
+
+
+#Predict Output
+predictions= linear.predict(test_X)
+
+pred_train = linear.predict(train_X)
+pred_test= linear.predict(test_X)
+
+show_coefficients('linear')
+
+
+
+# Create Ridge regression model and train
+print('Ridge Score')
+model = 'ridge'
+#create models and train
+clf = Ridge(alpha = 1.0)
+#Ridge
+clf.fit(train_X, train_y)#Ridge
+
+#evaluate on development set
+#Predict Output
+predictions= clf.predict(test_X)
+
+show_coefficients('ridge')
+#Y = clf.predict(X_dev)
+
+ 
+#sq_diff = np.square(np.log(prices_dev) - np.log(Y))
+#error = np.sqrt(np.sum(sq_diff) / prices_dev.shape[0])
+#error
+
+
+#create Lasso model and train
+model = 'lasso'
+print('Lasso Score')
+clf = None
+clf = Lasso(alpha = 1.0)
+clf
+clf.fit(train_X, train_y)
+
+#evaluate on development set
+#Predict Output
+predictions= clf.predict(test_X)
+#Y = clf.predict(X_dev)
+
+# The coefficients
+print('\n'*1)
+
+print('Coefficients: \n', clf.coef_)
+print('Intercept: \n', linear.intercept_)
+# The mean squared error
+print("Mean squared error: %.2f"
+      % np.mean((predictions - test_y) ** 2))
+
+# Explained variance score: 1 is perfect prediction
+print('Variance score: %.2f' % clf.score(test_X, test_y))
+
+print('\n'*1)
+#Root mean Squared error
+print ('\nRoot Mean Squared Error')
+
+print np.sqrt(metrics.mean_squared_error(test_y,predictions))
+
+#print('###############')
+
+#model = LinearRegression().fit(X_train, y_train)
+#predictions = model.predict(X_test)
+mae = metrics.mean_absolute_error(test_y, predictions)
+mse = metrics.mean_squared_error(test_y, predictions)
+
+print('\nMean Absolute Error')
+print(mae)
+
+print('\nMean Squared Error')
+print(mse)
+
+pred_len=int(len(predictions))
+print(pred_len)
+
+#Result obtained after running the algo. Comment the below two lines if you want to run the algo
+mae_list.append(mae)
+comb.append("Lasso" )    
+
+
+#Plot the MAE of all combinations
+fig, ax = plt.subplots()
+plt.plot(mae_list)
+#Set the tick names to names of combinations
+ax.set_xticks(range(len(comb)))
+ax.set_xticklabels(comb,rotation='vertical')
+#Plot the accuracy for all combinations
+plt.show()    
+
+# Release memory.
+plt.clf()
+plt.close()
+
+
+#pred_len=(len(predictions))
+
+
+#fig, ax = plt.subplots()
+#for a in [predictions, test_y]:
+    #sns.distplot(a, bins=range(len(predictions)), ax=ax, kde=True)
+#ax.set_xlim([0, 100])
+
+
+#for col_id in predictions.columns:
+    #sns.distplot(predictions[col_id])
+
+#plt.hist(predictions, alpha=0.5, color='red', cumulative=True, normed=True, bins=16175, histtype='stepfilled', stacked=True)
+
+#plt.show()
+
+#plt.hist(test_y, alpha=0.5, color='blue', cumulative=True, normed=True, bins=16175, histtype='stepfilled', stacked=True)
+#plt.show()
+#_ = plt.hist(predictions, alpha=0.5, color='red', cumulative=True, normed=True, bins=len(predictions), histtype='stepfilled', stacked=True)
+#_ = plt.hist(test_y, alpha=0.5, color='blue', cumulative=True, normed=True, bins=len(predictions), histtype='stepfilled', stacked=True)
+
+
+
+#caret
+#AIC
+#AIC(linear)
+
+#linear.fit(X_parameters, Y_parameters)
+#plt.scatter(train_X, train_y,color='blue')
+#plt.plot(train_X,linear.predict(test_X),color='red',linewidth=4)
+#plt.xticks(())
+#plt.yticks(())
+#plt.show()
+
+# Plot outputs
+#plt.scatter(test_X, test_y,  color='black')
+#plt.plot(test_X, prediction, color='blue',linewidth=3)
+
+#plt.xticks(())
+#plt.yticks(())
+
+#plt.show()
+
+
+#accuracy of our Linear Regression  Can't use metrics.accuracy_score
+#print('The accuracy of the Linear Regression is',metrics.accuracy_score(prediction,test_y))
+
+#Can't use continuous and binary  so clf is out
+#predictions = clf.predict(test_X)
+#print(accuracy_score(test_y, predictions))
+
+#print classification_report(test_y, prediction)
+
+#from sklearn.metrics import classification_report
+#classificationReport = classification_report(test_y, prediction)# target_names=target_names)
+
+#plot_classification_report(classificationReport)
+
+
+
+#Linear Score
+#('Coefficient: \n', array([[-0.43835167,  0.002586  ,  0.02803656, -0.02800461,  0.22426456,
+         #0.25589893,  0.16980327,  0.00876309, -0.00236092]]))
+#('Intercept: \n', array([-0.0693151]))
+
+
+#('Coefficients: \n', array([[-0.43835167,  0.002586  ,  0.02803656, -0.02800461,  0.22426456,
+         #0.25589893,  0.16980327,  0.00876309, -0.00236092]]))
+#Mean squared error: 0.01
+#Variance score: 0.96
+
+
+
+#Root Mean Squared Error
+#0.0901745324925
+
+#Mean Absolute Error
+#0.0679633207308
+
+#Mean Squared Error
+#0.00813144631024
+#16175
 
