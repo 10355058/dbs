@@ -1337,11 +1337,140 @@ AIC(fit_limited)
 #> AIC(fit_limited)
 #[1]  -61123.75
 
+###################################### Lets Look at Multicolliniarity ##############################
+
+str(diamonds)
+
+#So lets start with OLS Ordinary least Square
+
+
+library(MASS);
+names(longley)[1]<-"y"; 
+
+
+##lm.ridge(y~.,longley); #OLS
+
+diamond_ridge_columns <- (diamonds[c(1,2,3,4,5,6,8,9,10)])
+
+diamond_ridge_columns<- diamonds[,c(1,2,3,4,5,6,8,9,10,11)]
+
+str(diamond_ridge_columns)
+
+lm.ridge(lprice~ carat+cut+color+clarity+x+y+z+table+depth, data=diamond_ridge_columns);
+
+
+r<-lm.ridge(lprice~ carat+cut+color+clarity+x+y+z+table+depth, data=diamond_ridge_columns,lambda=seq(0,0.1,0.001),model=TRUE); 
+
+r$lambda[which.min(r$GCV)]
+
+# > r$lambda[which.min(r$GCV)]
+# [1] 0.1
+
+#Which gives us: 0.1 is an appropriate value for ridge parameter. 
+
+#Using the ridge trace curve:
+
+coefficients<-matrix(t(r$coef));
+lambda<-matrix(rep(seq(0,0.1,length=101),9));
+variable<-t(matrix(rep(colnames(diamond_ridge_columns[,1:9]),101),nrow=9));
+variable<-matrix(col); #ncol(variable)#
+ridge_data<-data.frame(coefficients,lambda,col);
+qplot(lambda,coefficients,data=ridge_data,colour=variable,
+      geom="line")+geom_line(size=1);
+
+
+# #non-Working example
+# #names(longley) GNP.deflator
+# 
+# lm.ridge(GNP.deflator~.,longley);
+# r<-lm.ridge(GNP.deflator~.,data=longley,lambda=seq(0,0.1,0.001),model=TRUE); 
+# r$lambda[which.min(r$GCV)];
+# #[1] 0.006
+# r$coef[,which.min(r$GCV)];
+# 
+# coefficients<-matrix(t(r$coef));
+# lambda<-matrix(rep(seq(0,0.1,length=101),6));
+# variable<-t(matrix(rep(colnames(longley[,2:7]),101),nrow=6));
+# 
+# variable = c(colnames(variable))
+# 
+# variable<-matrix(col);
+# 
+# ridge_data<-data.frame(coefficients,lambda,col);
+# qplot(lambda,coefficients,data=ridge_data,colour=variable,
+#       geom="line")+geom_line(size=1);
+# 
+
+
+# #https://www.rdocumentation.org/packages/genridge/versions/0.6-5/topics/plot.ridge
+# 
+# library(genr);
+# 
+# lambda <- c(0, 0.005, 0.01, 0.02, 0.04, 0.08)
+# lambdaf <- c("", ".005", ".01", ".02", ".04", ".08")
+# lridge <- lm.ridge(lprice~ carat+cut+color+clarity+x+y+z+table+depth, data=diamonds)
+# 
+# op <- par(mfrow=c(2,2), mar=c(4, 4, 1, 1)+ 0.1)
+# for (i in 2:5) {
+#   plot.ridge(lridge, variables=c(1,i), radius=0.5, cex.lab=1.5)
+#   text(lridge$coef[1,1], lridge$coef[1,i], expression(~widehat(beta)^OLS), 
+#        cex=1.5, pos=4, offset=.1)
+#   if (i==2) text(lridge$coef[-1,1:2], lambdaf[-1], pos=3, cex=1.25)
+# }
+# par(op)
+# 
+# if (require("ElemStatLearn")) {
+#   py <- prostate[, "lpsa"]
+#   pX <- data.matrix(prostate[, 1:8])
+#   pridge <- ridge(py, pX, df=8:1)
+#   
+#   plot(pridge)
+#   plot(pridge, fill=c(TRUE, rep(FALSE,7)))
+# }
+
+
+######################### ridge::linearRidge on subset of data
+
+library(ridge);
+
+#Memory issue
+#So try a subset say 10,000 rows
+library(dplyr)
+diamond_ridge_sample<-NULL
+mod_ridge<-NULL
+
+diamond_ridge_sample <- sample_n(diamonds, 21000)
+
+mod_ridge<-ridge::linearRidge(lprice~ carat+cut+color+clarity+x+y+z+table+depth, data=diamond_ridge_sample,lambda="automatic"); 
+summary(mod_ridge);
+
+
+#So result from Subset of 10,000 rows
+# Ridge parameter: 0.0006092903, chosen automatically, computed using 15 PCs
+# Degrees of freedom: model 22.31 , variance 21.81 , residual 22.82
+
+#So result from Subset of 20,000 rows
+#Ridge parameter: 0.0002842945, chosen automatically, computed using 15 PCs
+#Degrees of freedom: model 22.62 , variance 22.3 , residual 22.94 
+
+#So result from Subset of 21,000 rows
+#Ridge parameter: 0.0002861769, chosen automatically, computed using 15 PCs
+#Degrees of freedom: model 22.61 , variance 22.29 , residual 22.93 
 
 
 
+################################## vif #########################################
+
+#The vif() in car and kappa() can be applied to calculate the VIF and condition number
+#vif
+library(car);
+
+vif(lm(GNP~.,data=longley));
+
+vif(lm(lprice~.,data=diamond_ridge_columns))
 
 
+################################## Back to Business #########################################
 
 
 # Residual standard error: 0.1377253 on 53896 degrees of freedom
@@ -1839,6 +1968,7 @@ plot(diamonds_scaled)
 ########################################################## Ward Hierarchical Clustering #####################################################
      
 # Ward Hierarchical Clustering
+d_euclid_diam <- NULL
 d_euclid_diam <- dist(diamonds_scaled, method = "euclidean") # distance matrix
 fit_clust_diam <- hclust(d_euclid_diam, method="ward.D")
 plot(fit_clust_diam,cex=0.1,main="Ward Hierarchical Clustering") # display dendogram
