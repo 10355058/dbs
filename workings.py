@@ -45,6 +45,60 @@ diamonds['lprice']=np.log10(diamonds.price)
 diamonds['ideal_flag'] = diamonds['cut'].apply(lambda x: 'True' if x == 'Ideal' else 'False')
 
 
+
+
+
+
+# In[ ]:
+
+### Train/Test split
+
+
+# In[75]:
+
+
+
+
+#Fancy train/test split
+
+from sklearn.cross_validation import train_test_split
+
+#X_all = diamonds.drop(['ideal_flag','cut'], axis=1)
+X_all = diamonds.drop(['ideal_flag'], axis=1)
+Y_all = diamonds['ideal_flag']
+
+num_test = 0.30
+#train_X, test_X, train_y, test_y = train_test_split(X_all, Y_all, test_size=num_test, random_state=23)
+diamonds_train, diamonds_test = train_test_split(diamonds,test_size=num_test,random_state=23)
+
+
+#Some Final Encoding based on #https://www.kaggle.com/enerrio/scikit-learn-ml-from-start-to-finish
+
+
+from sklearn import preprocessing
+def encode_features(df_train, df_test):
+    features = ['cut','clarity','color']
+    df_combined = pd.concat([df_train[features], df_test[features]])
+    
+    for feature in features:
+        le = preprocessing.LabelEncoder()
+        le = le.fit(df_combined[feature])
+        df_train[feature] = le.transform(df_train[feature])
+        df_test[feature] = le.transform(df_test[feature])
+    return df_train, df_test
+    
+diamonds_train, diamonds_test = encode_features(diamonds_train, diamonds_test)
+
+#diamonds_train.head()
+
+#Set up our training and test data
+train_X=diamonds_train[['carat','cut','clarity','color','x','y','z','depth','table']]# taking the training data features
+train_y=diamonds_train[['lprice']] # output of our training data
+test_X =diamonds_test[['carat','cut','clarity','color','x','y','z','depth','table']] # taking test data features
+test_y=diamonds_test[['lprice']]  #output value of test data
+
+
+
 # ## Data exploration of the original dataset and all that follows
 
 # In[1]:
@@ -1586,7 +1640,7 @@ plt.clf()
 plt.close()
 
 
-# In[64]:
+# In[4]:
 
 diamonds.corr()
 
@@ -1739,7 +1793,9 @@ test_y.describe()
 str(diamonds_norm_use)
 
 
-# In[6]:
+# # GradientBoostRegressor - Variable importance
+
+# In[9]:
 
 
 #Based on following:
@@ -1775,7 +1831,7 @@ diamonds_norm_use = None
 #indexes_to_keep = set(range(diamonds_norm.shape[1])) - set(indexes_to_drop)
 #diamonds_norm_use = diamonds_norm.take(:list((indexes_to_keep)))
 
-diamonds_norm_use = diamonds_norm.iloc[:,[0,1,2,3,4,5,7,8,9,10]] # All out other columns excludubg price and ideal_flag
+diamonds_norm_use = diamonds_norm.iloc[:,[0,1,2,3,4,5,7,8,9,10]] # All out other columns excluding price and ideal_flag
 
 
 #diamonds_target_use = diamonds_norm.columns.take(list[0])
@@ -1789,13 +1845,38 @@ diamonds_norm_use = diamonds_norm.iloc[:,[0,1,2,3,4,5,7,8,9,10]] # All out other
 #pd.DataFrame(diamonds_norm.columns.take(list((indexes_to_keep))))
 
 #numpyMatrix = df.as_matrix()
-X, y = shuffle(diamonds_norm_use, diamonds_target_use, random_state=23)
 
+diamonds_norm_use = diamonds_norm.iloc[:,[0,1,2,3,4,5,7,8,9]] # All out other columns excluding lprice
+
+
+
+X, y = shuffle(diamonds_norm_use, diamonds_target_use, random_state=23)
 X = X.astype(np.float32)
+
+
 
 offset = int(X.shape[0] * 0.9)
 X_train, y_train = X[:offset], y[:offset]
 X_test, y_test = X[offset:], y[offset:]
+
+names = list(X_train)
+
+
+X_train = np.array(X_train)
+y_train = np.array(y_train)
+
+X_test = np.array(X_test)
+y_test = np.array(y_test)
+
+
+
+#Reshape out Array from (37741L, 1L)) to 37741L,
+y_train = np.reshape(y_train, -1)
+y_test = np.reshape(y_test, -1)
+
+feature_names = np.array(list(diamonds_norm_use))
+
+#feature_names = np.array('carat', 'cut', 'clarity', 'color', 'x', 'y', 'z', 'depth', 'table')
 
 #Fit regression model
 params = {'n_estimators': 500, 'max_depth': 4, 'min_samples_split': 2,
@@ -1811,7 +1892,7 @@ print("MSE: %.6f" % mse)
 
 
 #Quick check to see we actually have something
-y_pred = clf.predict(X_test)
+#y_pred = clf.predict(X_test)
 
 # compute test set deviance
 test_score = np.zeros((params['n_estimators'],), dtype=np.float64)
@@ -1820,6 +1901,7 @@ test_score = np.zeros((params['n_estimators'],), dtype=np.float64)
 for i, y_pred in enumerate(clf.staged_predict(X_test)):
     test_score[i] = clf.loss_(y_test, y_pred)
 
+#plt.figure(figsize=(40, 20))
 plt.figure(figsize=(12, 6))
 plt.subplot(1, 2, 1)
 plt.title('Deviance')
@@ -1831,6 +1913,7 @@ plt.legend(loc='upper right')
 plt.xlabel('Boosting Iterations')
 plt.ylabel('Deviance')
 
+
 feature_importance = clf.feature_importances_
 # make importances relative to max importance
 feature_importance = 100.0 * (feature_importance / feature_importance.max())
@@ -1838,9 +1921,20 @@ sorted_idx = np.argsort(feature_importance)
 pos = np.arange(sorted_idx.shape[0]) + .5
 plt.subplot(1, 2, 2)
 plt.barh(pos, feature_importance[sorted_idx], align='center')
-plt.yticks(pos, boston.feature_names[sorted_idx])
+plt.yticks(pos, feature_names[sorted_idx])
+#plt.yticks(pos, boston.feature_names[sorted_idx])
 plt.xlabel('Relative Importance')
 plt.title('Variable Importance')
+
+
+# # sort importances
+# indices = np.argsort(clf.feature_importances_)
+# # plot as bar chart
+# plt.barh(np.arange(len(feature_names)), clf.feature_importances_[indices])
+# plt.yticks(np.arange(len(feature_names)) + 0.25, np.array(feature_names)[indices])
+# _ = plt.xlabel('Relative importance')
+# #plt.savefig("Liberty_Feature_Importance.png")
+
 
 
 plt.show()
@@ -1853,7 +1947,137 @@ plt.close()
 
 
 
-# In[14]:
+# In[18]:
+
+print(feature_importance[sorted_idx]),feature_names[sorted_idx][::-1]
+
+
+# In[10]:
+
+# Author: Peter Prettenhofer <peter.prettenhofer@gmail.com>
+#
+# License: BSD 3 clause
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn import ensemble
+from sklearn import datasets
+
+
+diamonds_norm = None
+diamonds_norm = pd.concat([diamonds_train, diamonds_test], ignore_index=True)
+diamonds_target=diamonds_norm['lprice'] # #Give diamonds.target the target value lprice
+
+#Let indexes_to_drop be an array of positional indexes to drop ([0,1,2,3,4,5,6,7,8,9,11] in our case everything but lprice).
+diamonds_target_use = None
+diamonds_target_use = diamonds_norm.iloc[:,[10]] #lprice
+
+#We don't want to  use the idela_flag or the price so lets drop them
+diamonds_norm_use = None
+
+#Let indexes_to_drop be an array of positional indexes to drop ([6,11] in our case).
+
+
+diamonds_norm_use = diamonds_norm.iloc[:,[0,1,2,3,4,5,7,8,9,10]] # All out other columns excluding price and ideal_flag
+
+
+diamonds_norm_use = diamonds_norm.iloc[:,[0,1,2,3,4,5,7,8,9]] # All out other columns excluding lprice
+
+
+
+X, y = shuffle(diamonds_norm_use, diamonds_target_use, random_state=23)
+X = X.astype(np.float32)
+
+
+
+offset = int(X.shape[0] * 0.9)
+X_train, y_train = X[:offset], y[:offset]
+X_test, y_test = X[offset:], y[offset:]
+
+names = list(X_train)
+
+
+X_train = np.array(X_train)
+y_train = np.array(y_train)
+
+X_test = np.array(X_test)
+y_test = np.array(y_test)
+
+
+
+#Reshape out Array from (37741L, 1L)) to 37741L,
+y_train = np.reshape(y_train, -1)
+#y_test = np.reshape(y_test, -1)
+
+feature_names = np.array(list(diamonds_norm_use))
+
+
+#Fit regression model
+params = {'n_estimators': 500, 'max_depth': 4, 'min_samples_split': 2,
+          'learning_rate': 0.01, 'loss': 'ls'}
+clf = ensemble.GradientBoostingRegressor(**params)
+
+original_params = {'n_estimators': 1000, 'max_depth': None, 'random_state': 2,
+                   'learning_rate': 0.01, 'loss': 'ls'}
+
+plt.figure()
+
+for label, color, setting in [('No shrinkage', 'orange',
+                               {'n_estimators': 1000}),
+                              ('n_estimators: 100', 'turquoise',
+                               {'n_estimators': 100})]:
+                              
+#                               ('n_estimators: 250', 'max_depth: 4', 'blue',
+#                                {'n_estimators': 250, 'max_depth': 4}),
+#                               ('n_estimators: 500', 'max_depth: 4', 'gray',
+#                                {'n_estimators': 500, 'max_depth': 4}),
+#                               ('n_estimators: 750', 'max_depth: 4', 'magenta',
+#                                {'n_estimators': 750, 'max_depth': 4})]:
+    
+# for label, color, setting in [('No shrinkage', 'orange',
+#                                {'n_estimators': 1000, 'max_depth': 4}),
+#                               ('n_estimators: 100', 'max_depth: 4', 'turquoise',
+#                                {'n_estimators': 100, 'max_depth': 4}),
+#                               ('n_estimators: 250', 'max_depth: 4', 'blue',
+#                                {'n_estimators': 250, 'max_depth': 4}),
+#                               ('n_estimators: 500', 'max_depth: 4', 'gray',
+#                                {'n_estimators': 500, 'max_depth': 4}),
+#                               ('n_estimators: 750', 'max_depth: 4', 'magenta',
+#                                {'n_estimators': 750, 'max_depth': 4})]:
+    
+    params = dict(original_params)
+    params.update(setting)
+
+    #clf = ensemble.GradientBoostingClassifier(**params)
+    clf.fit(X_train, y_train)
+
+    # compute test set deviance
+    test_deviance = np.zeros((params['n_estimators'],), dtype=np.float64)
+
+    for i, y_pred in enumerate(clf.staged_decision_function(X_test)):
+        # clf.loss_ assumes that y_test[i] in {0, 1}
+        test_deviance[i] = clf.loss_(y_test, y_pred)
+
+    plt.plot((np.arange(test_deviance.shape[0]) + 1)[::5], test_deviance[::5],
+            '-', color=color, label=label)
+
+plt.legend(loc='upper left')
+plt.xlabel('Boosting Iterations')
+plt.ylabel('Test Set Deviance')
+
+plt.show()
+
+
+########################################################################
+
+
+# In[53]:
+
+X_train.shape,y_train.shape,y_test.shape,y_pred.shape
+
+
+# In[115]:
 
 
 
@@ -1872,20 +2096,6 @@ plt.show()
 # Release memory.
 plt.clf()
 plt.close()
-
-
-# In[414]:
-
-
-
-
-# In[406]:
-
-print(X_train.shape)
-print(y_train.shape)
-print(X_test.shape)
-print(y_test.shape)
-str(y_pred)
 
 
 # In[379]:
@@ -1912,7 +2122,7 @@ print(max_count)
 (diamonds_target_use)
 
 
-# In[213]:
+# In[117]:
 
 #print(__doc__)
 
@@ -1977,14 +2187,22 @@ plt.show()
 
 plt.show()
 
+
+
+
 # Release memory.
 plt.clf()
 plt.close()
 
 
-# In[214]:
+# In[73]:
 
-X
+boston.data.shape
+
+
+# In[188]:
+
+boston.feature_names
 
 
 # In[411]:
@@ -2105,7 +2323,645 @@ print(np.mean((predictions - test_y) ** 2)))
 model_output.head()
 
 
-# In[85]:
+# # Feature Selection
+
+# # Recursive feature elimination
+
+# In[43]:
+
+#Recursive feature elimination
+
+from sklearn.feature_selection import RFE
+from sklearn.linear_model import LinearRegression
+
+names = list(train_X)
+ 
+#use linear regression as the model
+lr = LinearRegression()
+#rank all features, i.e continue the elimination until the last one
+rfe = RFE(lr, n_features_to_select=1)
+rfe.fit(train_X,train_y)
+ 
+print "Features sorted by their rank:"
+print sorted(zip(map(lambda x: round(x, 4), rfe.ranking_), names))
+
+# summarize the selection of the attributes
+print(rfe.support_)
+print(rfe.ranking_)
+
+
+# In[239]:
+
+# for 0.18 version or newer, use:
+from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import Lasso
+# for pre-0.18 versions of scikit, use:
+#from sklearn.cross_validation import cross_val_score
+
+#X = # Some features
+#y = # Some classes
+
+clf = Lasso()
+scores = cross_val_score(clf, train_X, train_y, cv=10)
+print(scores)
+
+
+# In[183]:
+
+train_X.shape,train_y.shape
+
+
+# In[ ]:
+
+
+
+
+# In[74]:
+
+#citation
+#Davide Albanese, Michele Filosi, Roberto Visintainer, Samantha Riccadonna, Giuseppe Jurman and Cesare Furlanello. minerva and minepy: a C engine for the MINE suite and its R, Python and MATLAB wrappers. 
+#Bioinformatics (2013) 29(3): 407-408 first published online December 14, 2012 doi:10.1093/bioinformatics/bts707.
+
+from sklearn.linear_model import (LinearRegression, Ridge, 
+                                  Lasso, RandomizedLasso)
+from sklearn.feature_selection import RFE, f_regression
+from sklearn.preprocessing import MinMaxScaler
+
+from sklearn.ensemble import RandomForestRegressor
+import numpy as np
+#from minepy import MINE
+
+
+
+ranks = {}
+
+names = np.array(list(train_X))
+
+
+def rank_to_dict(ranks, names, order=1):
+    minmax = MinMaxScaler()
+    ranks = minmax.fit_transform(order*np.array([ranks]).T).T[0]
+    ranks = map(lambda x: round(x, 2), ranks)
+    return dict(zip(names, ranks ))
+
+X_train = np.array(train_X)
+y_train = np.array(train_y)
+
+# X_test = np.array(X_test)
+# y_test = np.array(y_test)
+
+#Reshape out Array from (37741L, 1L)) to 37741L,
+y_train = np.reshape(y_train, -1)
+#y_test = np.reshape(y_test, -1)
+
+print "Features sorted by their coefficient:"
+print('\n'*2)
+
+print('Linear Regression')
+print('\n'*2)
+clf = LinearRegression(normalize=True)
+clf.fit(X_train, y_train)
+print(clf.coef_)
+ranks["Linear reg"] = rank_to_dict(np.abs(clf.coef_), names)
+
+print('\n'*2)
+
+
+print sorted(zip(map(lambda x: round(x, 4), clf.coef_), names))
+print('\n'*2)
+
+print('Ridge Regression')
+print('\n'*2)
+clf = None
+clf = Ridge(alpha=1.0)
+clf.fit(X_train, y_train)
+ranks["Ridge"] = rank_to_dict(np.abs(clf.coef_), names)
+print sorted(zip(map(lambda x: round(x, 4), clf.coef_), names))
+print('\n'*2)
+
+print('Lasso Regression')
+print('\n'*2)
+clf = None
+clf = Lasso(alpha=.05)
+clf.fit(X_train, y_train)
+ranks["Lasso"] = rank_to_dict(np.abs(clf.coef_), names)
+print sorted(zip(map(lambda x: round(x, 4), clf.coef_), names))
+print('\n'*2)
+
+print('RandomizedLasso Regression')
+clf = RandomizedLasso(alpha=0.04)
+clf.fit(X_train, y_train)
+ranks["Stability"] = rank_to_dict(np.abs(clf.scores_), names)
+print sorted(zip(map(lambda x: round(x, 4), clf.scores_), names))
+print('\n'*2)
+
+#stop the search when 5 features are left (they will get equal scores)
+print('Recursive Feature Elimination')
+lr = LinearRegression(normalize=True)
+clf = RFE(lr, n_features_to_select=5)
+clf.fit(X_train, y_train)
+ranks["RFE"] = rank_to_dict(map(float, clf.ranking_), names, order=-1)
+print sorted(zip(map(lambda x: round(x, 4), clf.ranking_), names))
+print('\n'*2) 
+
+print('Random Forest Regressor')
+clf = RandomForestRegressor()
+clf.fit(X_train, y_train)
+ranks["RF"] = rank_to_dict(clf.feature_importances_, names)
+print sorted(zip(map(lambda x: round(x, 4), clf.feature_importances_), names))
+print('\n'*2)
+
+print('Correlation')
+f, pval  = f_regression(X_train, y_train, center=True)
+ranks["Corr."] = rank_to_dict(f, names)
+print sorted(zip(map(lambda x: round(x, 4), f), names))
+print('\n'*2)
+
+print(ranks["Corr."])
+print(ranks["RF"])
+
+
+
+r = {}
+for name in names:
+    r[name] = round(np.mean([ranks[method][name] 
+                             for method in ranks.keys()]), 2)
+
+methods = sorted(ranks.keys())
+ranks["Mean"] = r
+methods.append("Mean")
+ 
+print "\t%s" % "\t".join(methods)
+for name in names:
+    print "%s\t%s" % (name, "\t".join(map(str, 
+                         [ranks[method][name] for method in methods])))
+
+
+# In[23]:
+
+clf = None
+clf = Ridge(alpha=1.0)
+clf.fit(X_train, y_train)
+ranks["Ridge"] = rank_to_dict(np.abs(clf.coef_), names)
+print sorted(zip(map(lambda x: round(x, 4), clf.coef_), names))
+print('\n'*2)
+print(sorted(zip(map(lambda x: round(x, 4), clf.coef_), names))[::-1])
+
+
+# In[11]:
+
+ranks[]
+
+
+# In[25]:
+
+ranks["Ridge"],ranks, dict(zip(names, ranks))#[::-1]
+
+
+# In[30]:
+
+#ranks["Ridge"],ranks, dict(zip(names, ranks))#[::-1]
+
+ranks["Ridge"]
+
+
+# In[197]:
+
+minmax = MinMaxScaler()
+order=1
+my_val = minmax.fit_transform(order*np.array([ranks["Ridge"]]).T).T[0]
+
+
+# In[199]:
+
+names
+
+
+# ### Recursive feature elimination
+
+# In[44]:
+
+
+from sklearn.linear_model import RandomizedLasso
+from sklearn.datasets import load_boston
+
+from sklearn.feature_selection import RFE
+from sklearn.linear_model import LinearRegression
+ 
+boston = load_boston()
+X = boston["data"]
+Y = boston["target"]
+names = boston["feature_names"]
+ 
+#use linear regression as the model
+lr = LinearRegression()
+#rank all features, i.e continue the elimination until the last one
+rfe = RFE(lr, n_features_to_select=1)
+rfe.fit(X,Y)
+ 
+print "Features sorted by their rank:"
+print sorted(zip(map(lambda x: round(x, 4), rfe.ranking_), names))
+
+
+
+
+# In[41]:
+
+y_train.shape
+
+
+# In[5]:
+
+from sklearn.datasets import load_boston
+from sklearn.linear_model import (LinearRegression, Ridge, 
+                                  Lasso, RandomizedLasso)
+from sklearn.feature_selection import RFE, f_regression
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.ensemble import RandomForestRegressor
+import numpy as np
+#from minepy import MINE
+ 
+np.random.seed(0)
+ 
+size = 750
+X = np.random.uniform(0, 1, (size, 14))
+ 
+#"Friedamn #1” regression problem
+Y = (10 * np.sin(np.pi*X[:,0]*X[:,1]) + 20*(X[:,2] - .5)**2 +
+     10*X[:,3] + 5*X[:,4] + np.random.normal(0,1))
+#Add 3 additional correlated variables (correlated with X1-X3)
+X[:,10:] = X[:,:4] + np.random.normal(0, .025, (size,4))
+ 
+names = ["x%s" % i for i in range(1,15)]
+ 
+ranks = {}
+ 
+def rank_to_dict(ranks, names, order=1):
+    minmax = MinMaxScaler()
+    ranks = minmax.fit_transform(order*np.array([ranks]).T).T[0]
+    ranks = map(lambda x: round(x, 2), ranks)
+    return dict(zip(names, ranks ))
+ 
+lr = LinearRegression(normalize=True)
+lr.fit(X, Y)
+ranks["Linear reg"] = rank_to_dict(np.abs(lr.coef_), names)
+ 
+ridge = Ridge(alpha=7)
+ridge.fit(X, Y)
+ranks["Ridge"] = rank_to_dict(np.abs(ridge.coef_), names)
+ 
+
+lasso = Lasso(alpha=.05)
+lasso.fit(X, Y)
+ranks["Lasso"] = rank_to_dict(np.abs(lasso.coef_), names)
+ 
+rlasso = RandomizedLasso(alpha=0.04)
+rlasso.fit(X, Y)
+ranks["Stability"] = rank_to_dict(np.abs(rlasso.scores_), names)
+ 
+#stop the search when 5 features are left (they will get equal scores)
+rfe = RFE(lr, n_features_to_select=5)
+rfe.fit(X,Y)
+ranks["RFE"] = rank_to_dict(map(float, rfe.ranking_), names, order=-1)
+ 
+rf = RandomForestRegressor()
+rf.fit(X,Y)
+ranks["RF"] = rank_to_dict(rf.feature_importances_, names)
+ 
+
+f, pval  = f_regression(X, Y, center=True)
+ranks["Corr."] = rank_to_dict(f, names)
+ 
+# mine = MINE()
+# mic_scores = []
+# for i in range(X.shape[1]):
+#     mine.compute_score(X[:,i], Y)
+#     m = mine.mic()
+#     mic_scores.append(m)
+    
+    
+    
+#ranks["MIC"] = rank_to_dict(mic_scores, names) 
+ 
+r = {}
+for name in names:
+    r[name] = round(np.mean([ranks[method][name] 
+                             for method in ranks.keys()]), 2)
+
+methods = sorted(ranks.keys())
+ranks["Mean"] = r
+methods.append("Mean")
+ 
+print "\t%s" % "\t".join(methods)
+for name in names:
+    print "%s\t%s" % (name, "\t".join(map(str, 
+                         [ranks[method][name] for method in methods])))
+
+
+# # Build Models based on RFE 
+
+# In[138]:
+
+train_full.head()#.iloc[:,[0,1,2,3,4,5,7,8,9]]
+
+
+
+# In[132]:
+
+train_X.iloc[:,[5,2,3,4]].head()
+
+
+# In[139]:
+
+from sklearn.linear_model import (LinearRegression, Ridge, 
+                                  Lasso, RandomizedLasso)
+from sklearn.feature_selection import RFE, f_regression
+from sklearn.preprocessing import MinMaxScaler
+
+#from sklearn.ensemble import RandomForestRegressor
+import numpy as np
+
+from sklearn import metrics
+from sklearn.metrics import r2_score
+
+    
+
+#List of combinations
+comb = []
+
+#Dictionary to store the MAE for all algorithms 
+mae_list = []
+
+output_columns = ['Model','r^2 on test data', 'Model Score on Training Data','Variance score','Root Mean Squared Error','Mean Absolute Error','Mean Squared Error']
+model_output = pd.DataFrame(columns=output_columns)
+
+
+#GradientBoostRegressor
+#['y' 'clarity' 'z' 'carat' 'color' 'x' 'cut' 'depth' 'table']
+
+#Recursive Feature Elimination top 5 predictors
+#[(1.0, 'carat'), (1.0, 'clarity'), (1.0, 'x'), (1.0, 'y'), (1.0, 'z'), (2.0, 'color'), (3.0, 'depth'), (4.0, 'cut'), (5.0, 'table')]
+
+#Ridge
+# {'carat': 1.0, 
+#  'x': 0.49, 
+#  'y': 0.57, 
+#  'z': 0.42}
+#  'clarity': 0.06,
+#  'color': 0.06,
+#  'cut': 0.0,
+#  'depth': 0.01,
+#  'table': 0.0,
+
+
+ranks = {}
+
+names = np.array(list(train_X))
+
+
+
+def rank_to_dict(ranks, names, order=1):
+    minmax = MinMaxScaler()
+    ranks = minmax.fit_transform(order*np.array([ranks]).T).T[0]
+    ranks = map(lambda x: round(x, 2), ranks)
+    return dict(zip(names, ranks ))
+
+
+def build_model(X_to_use,y_to_use,X_to_test,y_to_test,tag):
+    print "Features sorted by their coefficient:"
+    print('\n'*2)
+
+    print('Linear Regression', tag)
+    print('\n'*2)
+    model = LinearRegression(normalize=True)
+    model.fit(X_to_use, y_to_use)
+    print(model.coef_)
+    #ranks["Linear reg"] = rank_to_dict(np.abs(clf.coef_), names)
+    print('Training score', model.score(X_to_use, y_to_use))
+    print('\n'*2)
+
+    pred_test = model.fit(X_to_use, y_to_use).predict(X_to_test)
+    predictions = pred_test
+    r2_score_linear = r2_score(y_to_test, pred_test)
+
+
+    model_r2_score = r2_score_linear
+
+    #model_analysis(linear,tag,model_r2_score)
+
+    mae = metrics.mean_absolute_error(y_to_test, pred_test)
+    mse = metrics.mean_squared_error(y_to_test, pred_test)
+
+    pred_len=int(len(predictions))
+
+    output_columns = ['Model','r^2 on test data','Variance score','Root Mean Squared Error','Mean Absolute Error','Mean Squared Error']
+
+    model_output.loc[model_output.shape[0]] = (tag,'{0:.6f}'.format(model_r2_score),'{0:.6f}'.format(model.score(X_to_test, y_to_test)),
+                        model.score(X_to_test, y_to_test),np.sqrt(metrics.mean_squared_error(y_to_test, pred_test)),(mae),mse)
+    
+   
+    plt.figure(figsize=(12, 6))
+    plt.subplot(1, 2, 1)
+    my_title=('Prediction for Model: %s'%(model))
+    plt.title(my_title +'\n')
+    #plt.title('Prediction')
+    plt.scatter(test_y, pred_test, 
+         label='Prediction Accuracy')
+    plt.legend(loc='upper right')
+    #plt.xlabel('Actual')
+    #plt.ylabel('Predicted')
+
+    plt.show()
+
+    # Release memory.
+    plt.clf()
+    plt.close()
+    
+    #Result obtained after running the algo. Comment the below two lines if you want to run the algo
+    mae_list.append(mae)
+    comb.append(tag)  
+
+    
+    
+    
+
+# Create linear regression object
+print('Linear Regression -minimum')
+tag = 'Linear Model lprice ~ y '
+
+# train_X=diamonds_train[['carat','cut','clarity','x','y','z']]# taking the training data features
+# train_y=diamonds_train[['lprice']] # output of our training data
+# test_X =diamonds_test[['carat','cut','clarity','x','y','z']] # taking test data features
+# test_y=diamonds_test[['lprice']]  #output value of test data
+
+
+X_build = np.array(train_X.iloc[:,[5]])
+y_build = np.array(train_y)
+X_build_test = np.array(test_X.iloc[:,[5]])
+y_build_test = np.array(test_y)
+
+# # X_test = np.array(X_test)
+# # y_test = np.array(y_test)
+
+# #Reshape out Array from (37741L, 1L)) to 37741L,
+# y_build = np.reshape(y_build, -1)
+# #y_test = np.reshape(y_test, -1)
+
+build_model(X_build,y_build,X_build_test,y_build_test,tag)
+
+print('Linear Regression all')
+tag = 'Linear Model lprice ~ carat + cut + clarity + color + x + y + z + depth + table '
+X_build = np.array(train_X)
+y_build = np.array(train_y)
+X_build_test = np.array(test_X)
+
+build_model(X_build,y_build,X_build_test,y_build_test,tag)
+
+
+tag = 'Linear Model lprice ~ y + clarity '
+X_build = np.array(train_X.iloc[:,[5,2]])
+y_build = np.array(train_y)
+X_build_test = np.array(test_X.iloc[:,[5,2]])
+
+build_model(X_build,y_build,X_build_test,y_build_test,tag)
+
+
+tag = 'Linear Model lprice ~ y + clarity + color '
+X_build = np.array(train_X.iloc[:,[5,2,3]])
+y_build = np.array(train_y)
+X_build_test = np.array(test_X.iloc[:,[5,2,3]])
+
+build_model(X_build,y_build,X_build_test,y_build_test,tag)
+
+tag = 'Linear Model lprice ~ y + clarity + color + carat'
+X_build = np.array(train_X.iloc[:,[5,2,3,0]])
+y_build = np.array(train_y)
+X_build_test = np.array(test_X.iloc[:,[5,2,3,0]])
+
+build_model(X_build,y_build,X_build_test,y_build_test,tag)
+
+tag = 'Linear Model lprice ~ y + clarity + color + x'
+X_build = np.array(train_X.iloc[:,[5,2,3,4]])
+y_build = np.array(train_y)
+X_build_test = np.array(test_X.iloc[:,[5,2,3,4]])
+
+build_model(X_build,y_build,X_build_test,y_build_test,tag)
+
+model_output.head()
+
+
+
+# In[125]:
+
+clf = LinearRegression(normalize=True)
+clf.fit(X_train, y_train)
+print(clf.coef_)
+
+
+# In[48]:
+
+np.array(train_X['y']).shape,np.array(train_y).shape
+
+
+# In[101]:
+
+#Build Linear Models Using OLS
+from sklearn.linear_model import LinearRegression
+import statsmodels.formula.api as sm
+
+
+
+#GradientBoostRegressor
+#['y' 'clarity' 'z' 'carat' 'color' 'x' 'cut' 'depth' 'table']
+
+#Recursive Feature Elimination top 5 predictors
+#[(1.0, 'carat'), (1.0, 'clarity'), (1.0, 'x'), (1.0, 'y'), (1.0, 'z'), (2.0, 'color'), (3.0, 'depth'), (4.0, 'cut'), (5.0, 'table')]
+
+#Ridge
+# {'carat': 1.0, 
+#  'x': 0.49, 
+#  'y': 0.57, 
+#  'z': 0.42}
+#  'clarity': 0.06,
+#  'color': 0.06,
+#  'cut': 0.0,
+#  'depth': 0.01,
+#  'table': 0.0,
+
+
+def run_ols_build(label,features):
+    df = diamonds
+    result = sm.ols(formula=label + "~" + build_features, data=df).fit()
+    print result.params
+    print result.summary()
+    print("\n"*2)
+
+#y, X = dmatrices(label + '~' + features,
+
+#names = list(train_X)
+
+build_features = "+".join(train_X.columns  - ['carat','cut','clarity','x','z','color','depth','table'])
+#Pick out label                   
+label = "".join(train_y.columns)
+run_ols_build(label,features)
+
+
+build_features = "+".join(train_X.columns  - ['carat','cut','x','z','color','depth','table'])
+
+run_ols_build(label,features)    
+
+
+build_features = "+".join(train_X.columns  - ['carat','cut','clarity','x','z','color','depth','table'])
+
+run_ols_build(label,features)   
+
+
+build_features = "+".join(train_X.columns  - ['carat','cut','x','z','depth','table'])
+
+run_ols_build(label,features)   
+
+#Some benefit to add carat
+build_features = "+".join(train_X.columns  - ['cut','x','z','depth','table'])
+
+run_ols_build(label,features)   
+
+
+
+#No benefit to add cut
+build_features = "+".join(train_X.columns  - ['carat','x','z','depth','table'])
+
+run_ols_build(label,features) 
+
+#Try drop y and use carat - not as good at explaining data
+build_features = "+".join(train_X.columns  - ['y','cut','x','z','depth','table'])
+#Pick out label                   
+label = "".join(train_y.columns)
+run_ols_build(label,features)
+
+#Use our clarity,colour and our 3-axes
+build_features = "+".join(train_X.columns  - ['carat','cut','depth','table'])
+#Pick out label                   
+label = "".join(train_y.columns)
+run_ols_build(label,features)
+
+
+
+# df = diamonds
+# result = sm.ols(formula=label + "~" + build_features, data=df).fit()
+
+
+#rank all features, i.e continue the elimination until the last one
+#rfe = RFE(lr, n_features_to_select=1)
+#rfe.fit(train_X,train_y)
+ 
+#print "Features sorted by their rank:"
+#print sorted(zip(map(lambda x: round(x, 4), rfe.ranking_), names))
+
+
+
+
+
+# In[32]:
 
 #http://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_and_elasticnet.html#sphx-glr-auto-examples-linear-model-plot-lasso-and-elasticnet-py
 #Working Lasso Example 
@@ -2210,7 +3066,7 @@ pred_test = linear.fit(train_X, train_y).predict(test_X)
 predictions = pred_test
 r2_score_linear = r2_score(test_y, pred_test)
 
-# print(linear)
+#print(linear.fit)
 # print ('alpha :' , alpha)
 # print("r^2 on test data : %f" % r2_score_linear)
 
@@ -2472,9 +3328,25 @@ train
 test
 
 
-# # Lasso Cross validation - not fully working
+# In[110]:
 
-# In[46]:
+# from sklearn.feature_selection import SelectFromModel
+# from sklearn.svm import LinearSVC
+# from sklearn.linear_model import LinearRegression
+# from sklearn.pipeline import Pipeline
+
+# X=np.array(train_X)
+# y=np.array(train_y)
+
+# #Reshape out Array from (37741L, 1L)) to 37741L,
+# y = np.reshape(y, -1)
+
+
+
+
+# # Lasso Cross validation - determining alpha
+
+# In[233]:
 
 from sklearn import datasets
 from sklearn.linear_model import LassoCV
@@ -2537,21 +3409,27 @@ plt.close()
 # We use external cross-validation to see how much the automatically obtained
 # alphas differ across different cross-validation folds.
 lasso_cv = LassoCV(alphas=alphas, random_state=0)
-k_fold = KFold(3)
+k_fold = KFold(100)
 
-#Sselection of Alpha
 
-for k, (train, test) in enumerate(k_fold.split(train_X, train_y)):
-    print(train,test)
-    #lasso_cv.fit(train_X[train], train_y[train])
-    #print("[fold {0}] alpha: {1:.5f}, score: {2:.5f}".
-          #format(k, lasso_cv.alpha_, lasso_cv.score(train_X[test], train_y[test])))
+X = np.array(train_X)
+y = np.array(train_y)
+
+#Selection of Alpha
+
+for k, (train, test) in enumerate(k_fold.split(X, y)):
+    #print(train,test)
+    lasso_cv.fit(X[train], y[train])
+    print("[fold {0}] alpha: {1:.5f}, score: {2:.5f}".
+          format(k, lasso_cv.alpha_, lasso_cv.score(X[test], y[test])))
 print()
-print("Answer: Not very much since we obtained different alphas for different")
-print("subsets of the data and moreover, the scores for these alphas differ")
-print("quite substantially.")
+print("Compare the  alphas obtainedfor the")
+print("subsets of the data and moreover, and see if the scores differ")
+print("substantially.")
 
 plt.show()
+
+print("Done")
 
 
 # In[197]:
@@ -2570,7 +3448,7 @@ clf.coef_,ols.coef_
 ####
 
 
-# In[92]:
+# In[120]:
 
 from sklearn.linear_model import BayesianRidge, LinearRegression
 
@@ -2623,9 +3501,208 @@ n_features = sfm.transform(X).shape[1]
 print(n_features)
 
 
+# In[132]:
+
+import matplotlib.pyplot as plt
+#from sklearn.svm import SVC
+from sklearn.svm import LinearSVC
+from sklearn.model_selection import StratifiedKFold
+from sklearn.feature_selection import RFECV
+from sklearn.datasets import make_classification
+from sklearn.linear_model import LinearRegression
+
+
+
+# Build a classification task using 3 informative features
+# X, y = make_classification(n_samples=1000, n_features=25, n_informative=3,
+#                            n_redundant=2, n_repeated=0, n_classes=8,
+#                            n_clusters_per_class=1, random_state=0)
+
+X = np.array(train_X)
+y = np.array(train_y)
+
+#Reshape out Array from (37741L, 1L)) to 37741L,
+y = np.reshape(y, -1)
+
+
+names = list(train_X)
+ 
+#use linear regression as the model
+#lr = LinearRegression()
+#rank all features, i.e continue the elimination until the last one
+#rfe = RFE(lr, n_features_to_select=1)
+#rfe.fit(train_X,train_y)
+ 
+
+
+# Create the RFE object and compute a cross-validated score.
+svc = SVC(kernel="linear")
+# The "accuracy" scoring is proportional to the number of correct
+# classifications
+rfecv = RFECV(estimator=svc, step=1, cv=StratifiedKFold(2),
+              scoring='accuracy')
+rfecv.fit(X, y)
+
+print("Optimal number of features : %d" % rfecv.n_features_)
+
+# Plot number of features VS. cross-validation scores
+plt.figure()
+plt.xlabel("Number of features selected")
+plt.ylabel("Cross validation score (nb of correct classifications)")
+plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+plt.show()
+
+
+
+
+
+
+
+
+# In[228]:
+
+y.shape
+
+
+# In[121]:
+
+import matplotlib.pyplot as plt
+from sklearn.svm import SVC
+from sklearn.model_selection import StratifiedKFold
+from sklearn.feature_selection import RFECV
+from sklearn.datasets import make_classification
+
+
+
+
+# Build a classification task using 3 informative features
+# X, y = make_classification(n_samples=1000, n_features=25, n_informative=3,
+#                            n_redundant=2, n_repeated=0, n_classes=8,
+#                            n_clusters_per_class=1, random_state=0)
+
+X = np.array(train_X)
+y = np.array(train_y)
+
+#Reshape out Array from (37741L, 1L)) to 37741L,
+y = np.reshape(y, -1)
+
+# Create the RFE object and compute a cross-validated score.
+svc = SVC(kernel="linear")
+# The "accuracy" scoring is proportional to the number of correct
+# classifications
+rfecv = RFECV(estimator=svc, step=1, cv=StratifiedKFold(2),
+              scoring='accuracy')
+rfecv.fit(X, y)
+
+print("Optimal number of features : %d" % rfecv.n_features_)
+
+# Plot number of features VS. cross-validation scores
+plt.figure()
+plt.xlabel("Number of features selected")
+plt.ylabel("Cross validation score (nb of correct classifications)")
+plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+plt.show()
+
+
+# In[223]:
+
+y.shape
+
+
 # # Feature selection using SelectFromModel and LassoCV - index out of bounds - can't get the feature2
 
-# In[227]:
+# In[166]:
+
+#We'll need a normalised dataset later on so lets concatenate test and train  here
+diamonds_norm = None
+diamonds_norm = pd.concat([diamonds_train, diamonds_test], ignore_index=True)
+diamonds_target=diamonds_norm['lprice'] # #Give diamonds.target the target value lprice
+
+#Let indexes_to_drop be an array of positional indexes to drop ([0,1,2,3,4,5,6,7,8,9,11] in our case everything but lprice).
+diamonds_target_use = None
+
+diamonds_target_use = diamonds_norm.iloc[:,[10]] #lprice
+
+#We don't want to  use the idela_flag or the price so lets drop them
+diamonds_norm_use = None
+
+#Let indexes_to_drop be an array of positional indexes to drop ([6,11] in our case).
+diamonds_norm_use = diamonds_norm.iloc[:,[0,1,2,3,4,5,7,8,9,10]] # All out other columns excluding price and ideal_flag
+diamonds_norm_use = diamonds_norm.iloc[:,[0,1,2,3,4,5,7,8,9]] # All out other columns excluding lprice
+
+
+
+X, y = shuffle(diamonds_norm_use, diamonds_target_use, random_state=23)
+X = X.astype(np.float32)
+
+
+
+# offset = int(X.shape[0] * 0.9)
+# X_train, y_train = X[:offset], y[:offset]
+# X_test, y_test = X[offset:], y[offset:]
+
+# names = list(X_train)
+
+
+# X_train = np.array(X_train)
+# y_train = np.array(y_train)
+
+# X_test = np.array(X_test)
+# y_test = np.array(y_test)
+
+
+#Reshape out Array from (37741L, 1L)) to 37741L,
+# y_train = np.reshape(y_train, -1)
+# y_test = np.reshape(y_test, -1)
+
+
+X = np.array(X)
+y = np.array(y)
+y = np.reshape(y, -1)
+
+# We use the base estimator LassoCV since the L1 norm promotes sparsity of features.
+clf = LassoCV()
+
+###Issue is witht he sfm.transform the array returned is 1L and should be 2L
+
+# Set a minimum threshold of 0.25
+sfm = SelectFromModel(clf, threshold=0.25)
+sfm.fit(X, y)
+n_features = sfm.transform(X).shape[1]
+
+# Reset the threshold till the number of features equals two.
+# Note that the attribute can be set directly instead of repeatedly
+# fitting the metatransformer.
+while n_features > 2:
+    sfm.threshold += 0.1
+    X_transform = sfm.transform(X)
+    n_features = X_transform.shape[1]
+
+# Plot the selected two features from X.
+plt.title(
+    "Features selected from Diamonds using SelectFromModel with "
+    "threshold %0.3f." % sfm.threshold)
+feature1 = X_transform[:, 0]
+feature2 = X_transform[:, 1]
+feature3 = X_transform[:, 2]
+plt.plot(feature1, feature2, 'r.')
+plt.xlabel("Feature number 1")
+plt.ylabel("Feature number 2")
+plt.ylim([np.min(feature2), np.max(feature2)])
+plt.show()
+
+
+# In[175]:
+
+sfm.transform(X)
+
+
+# In[171]:
+
+print(sfm.fit(X, y))
+
+
+# In[176]:
 
 #Credit # Author: Manoj Kumar <mks542@nyu.edu>
 # License: BSD 3 clause
@@ -2643,8 +3720,8 @@ train_y=diamonds_train[['lprice']] # output of our training data
 test_X =diamonds_test[['carat','cut','clarity','color','x','y','z','depth','table']] # taking test data features
 test_y=diamonds_test[['lprice']]  #output value of test data
 
-X=np.array(train_X)
-y=np.array(train_y)
+X = np.array(train_X)
+y = np.array(train_y)
 
 #Reshape out Array from (37741L, 1L)) to 37741L,
 y = np.reshape(y, -1)
@@ -2652,6 +3729,9 @@ y = np.reshape(y, -1)
 
 # We use the base estimator LassoCV since the L1 norm promotes sparsity of features.
 clf = LassoCV()
+
+
+###Issue is witht he sfm.transform the array returned is 1L and should be 2L
 
 # Set a minimum threshold of 0.25
 sfm = SelectFromModel(clf, threshold=0.25)
@@ -2680,17 +3760,38 @@ plt.ylim([np.min(feature2), np.max(feature2)])
 plt.show()
 
 
-# In[226]:
+# In[177]:
 
-feature2
+sfm.transform(X)
 
 
-# In[216]:
+# In[145]:
+
+X.shape,y.shape
+
+
+# In[209]:
 
 sfm.transform(X).shape[1]
 
 
-# In[188]:
+# In[146]:
+
+n_features
+
+
+# In[68]:
+
+sfm.transform(X)
+
+
+
+# In[69]:
+
+sfm.transform(X).shape[1]
+
+
+# In[147]:
 
 my_y = np.reshape(y, -1)
 
@@ -2710,7 +3811,7 @@ X=np.array('{:.2f}%'.format(train_X))
 X
 
 
-# In[218]:
+# In[178]:
 
 #import plotly.plotly as py
 #import plotly.graph_objs as go
@@ -2724,6 +3825,7 @@ from sklearn.linear_model import LassoCV
 boston = load_boston()
 X, y = boston['data'], boston['target']
 
+#Just check data
 df_temp = pd.DataFrame(X)
 df_temp2 = pd.DataFrame(y)
 # We use the base estimator LassoCV since the L1 norm promotes sparsity of features.
@@ -2741,18 +3843,60 @@ while n_features > 2:
     sfm.threshold += 0.1
     X_transform = sfm.transform(X)
     n_features = X_transform.shape[1]
+    
+# Plot the selected two features from X.
+plt.title(
+    "Features selected from Boston using SelectFromModel with "
+    "threshold %0.3f." % sfm.threshold)
+feature1 = X_transform[:, 0]
+feature2 = X_transform[:, 1]
+plt.plot(feature1, feature2, 'r.')
+plt.xlabel("Feature number 1")
+plt.ylabel("Feature number 2")
+plt.ylim([np.min(feature2), np.max(feature2)])
+plt.show()
+
+
+# In[179]:
+
+sfm.transform(X)
+
+
+# In[103]:
+
+X.type
+
+
+# In[80]:
+
+sfm.transform(X)
+
+
+# In[84]:
+
+X.ndim
+
+
+# In[93]:
+
+sfm.transform(X).ndim
+
+
+# In[95]:
+
+sfm.transform(X).shape[1]
+
+
+# In[96]:
+
+n_features
 
 
 # # Principal Component Analysis
 
-# In[229]:
+# In[145]:
 
-train_X.head()
-
-
-# In[244]:
-
-print(__doc__)
+#print(__doc__)
 
 
 # Code source: Gaël Varoquaux
@@ -2768,8 +3912,16 @@ from sklearn import datasets
 
 np.random.seed(5)
 
-centers = [[1, 1], [-1, -1], [1, -1]]
-#iris = datasets.load_iris()
+centers = [[1, 1], [-1, -1]]#, [1, -1]]
+
+#We have 'cut' included but the target is ideal_flag...a predictor which define the ideal_flag
+#We have dropped 'cut' as the target is ideal_flag which is based on cut value
+train_X=diamonds_train[['carat','clarity','color','x','y','z','depth','table','lprice']]# taking the training data features
+train_y=diamonds_train.ideal_flag# output of our training data
+test_X=diamonds_test[['carat','clarity','color','x','y','z','depth','table','lprice']] # taking test data features
+test_y=diamonds_test.ideal_flag   #output value of test data
+
+
 X=np.array(train_X)
 y=np.array(train_y)
 
@@ -2778,30 +3930,71 @@ plt.clf()
 ax = Axes3D(fig, rect=[0, 0, .95, 1], elev=48, azim=134)
 
 plt.cla()
-pca = decomposition.PCA(n_components=3)
+pca = decomposition.PCA(n_components=2)
 pca.fit(X)
 X = pca.transform(X)
 
-for name, label in [('x', 0), ('cut', 1), ('clarity', 2)]:
-    ax.text3D(X[y == label, 0].mean(),
-              X[y == label, 1].mean() + 1.5,
-              X[y == label, 2].mean(), name,
-              horizontalalignment='center',
-              bbox=dict(alpha=.5, edgecolor='w', facecolor='w'))
-# Reorder the labels to have colors matching the cluster results
-y = np.choose(y, [1, 2, 0]).astype(np.float)
-ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=y, cmap=plt.cm.spectral)
-
-ax.w_xaxis.set_ticklabels([])
-ax.w_yaxis.set_ticklabels([])
-ax.w_zaxis.set_ticklabels([])
+for name, label in [('True', 1), ('False', 0)]:
+    #ax.text3D(X[y == label, 0].mean(),
+    #X[y == label, 1].mean() + 1.5))
+    ax.scatter(X[:, 0], X[:, 1], c = np.random.rand(3,), cmap=plt.cm.spectral)
+    #ax.w_xaxis.set_ticklabels([])
+    #ax.w_yaxis.set_ticklabels([])
+    #ax.w_zaxis.set_ticklabels([])
 
 plt.show()
 
+import pylab as pl
+pl.scatter(X[:, 0], X[:, 1],  c = np.random.rand(3,))
 
-# In[247]:
+# plt.figure(figsize=(12, 6))
+# plt.subplot(1, 2, 1)
+# my_title=('Scatter Plot PCA: %s'%(pca))
+# for name, label in [('True', 1), ('False', 0)]:
+#     plt.title(my_title +'\n')
+# #plt.title('Prediction')
+#     plt.scatter(X[,X[1])
+#     plt.legend(loc='upper right')
+# #plt.xlabel('Actual')
+# #plt.ylabel('Predicted')
 
-train_X
+plt.show()
+
+# Release memory.
+plt.clf()
+plt.close()
+
+
+# for name, label in [('True', 1), ('False', 0)]:
+#     ax.text3D(X[y == label, 0].mean(),
+#               X[y == label, 1].mean() + 1.5,
+#               name,
+#               horizontalalignment='center',
+#               bbox=dict(alpha=.5, edgecolor='w', facecolor='w'))
+# # Reorder the labels to have colors matching the cluster results
+# y = np.choose(y, [1, 0]).astype(np.float)
+# ax.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.spectral)
+# ax.scatter(X[:, 0], X[:, 1])
+# ax.w_xaxis.set_ticklabels([])
+# ax.w_yaxis.set_ticklabels([])
+# ax.w_zaxis.set_ticklabels([])
+
+#plt.show()
+
+
+# In[45]:
+
+print(pca.fit(X))
+
+
+# In[117]:
+
+bbox=dict(alpha=.5, edgecolor='w', facecolor='w')
+
+
+# In[27]:
+
+X[0],X[1]
 
 
 # In[243]:
@@ -2809,7 +4002,7 @@ train_X
 print(pca.fit(X).score)
 
 
-# In[248]:
+# In[124]:
 
 print(__doc__)
 
@@ -2858,20 +4051,14 @@ ax.w_zaxis.set_ticklabels([])
 plt.show()
 
 
-# In[249]:
+# In[125]:
 
-iris.data
+X.shape,y.shape
 
 
 # In[209]:
 
 X_transform.shape[1]
-
-
-# In[196]:
-
-X.shape,y.shape
-y
 
 
 # In[153]:
@@ -2891,16 +4078,6 @@ n_features
 # In[87]:
 
 data_X = train_X
-
-
-# In[159]:
-
-clf.describe()
-
-
-# In[146]:
-
-data_X.head(),train_X.head()
 
 
 # In[153]:
@@ -2955,8 +4132,7 @@ def model_predict(data_X,data_y,tag):
     pred_test= clf.predict(test_X)
 
     print('\n'*1)
-    
-    
+        
 
     print('Coefficients: \n', clf.coef_)
     print('Intercept: \n', clf.intercept_)
@@ -3294,18 +4470,35 @@ pd.DataFrame(zip(test_y,predictions),columns=['lprice','predicted value'])
 
 # # Our Classification Models on Ideal cut (True/False)
 
-# In[17]:
+# In[87]:
+
+# importing alll the necessary packages to use the various classification algorithms
+from sklearn.linear_model import LogisticRegression  # for Logistic Regression algorithm
+from sklearn.cross_validation import train_test_split #to split the dataset for training and testing
+from sklearn.neighbors import KNeighborsClassifier  # for K nearest neighbours
+from sklearn import svm  #for Support Vector Machine (SVM) Algorithm
+from sklearn import metrics #for checking the model accuracy
+from sklearn.tree import DecisionTreeClassifier #for using Decision Tree Algoithm
+
+seed=(1976)
+
 
 #We have 'cut' included but the target is ideal_flag...a predictor which define the ideal_flag
 #We have dropped 'cut' as the target is ideal_flag which is based on cut value
-train_X=diamonds_train[['carat','clarity','color','x','y','z','depth','table','lprice']]# taking the training data features
-train_y=diamonds_train.ideal_flag# output of our training data
-test_X=diamonds_test[['carat','clarity','color','x','y','z','depth','table','lprice']] # taking test data features
-test_y=diamonds_test.ideal_flag   #output value of test data
+train_X = diamonds_train[['carat','clarity','color','x','y','z','depth','table','lprice']]# taking the training data features
+train_y = diamonds_train.ideal_flag# output of our training data
+test_X = diamonds_test[['carat','clarity','color','x','y','z','depth','table','lprice']] # taking test data features
+test_y = diamonds_test.ideal_flag   #output value of test data
+
+#We have 'cut' included but the target is ideal_flag...a predictor which define the ideal_flag
+#We have dropped 'cut' as the target is ideal_flag which is based on cut value
+classification_price_train_X = diamonds_train[['carat','clarity','color','x','y','z','depth','table','price']]# taking the training data features
+classification_price_train_y = diamonds_train.ideal_flag# output of our training data
+classification_price_test_X = diamonds_test[['carat','clarity','color','x','y','z','depth','table','price']] # taking test data features
+classification_price_test_y = diamonds_test.ideal_flag   #output value of test data
 
 
-
-# In[18]:
+# In[94]:
 
 #based on http://scikit-learn.org/stable/auto_examples/model_selection/plot_confusion_matrix.html
 
@@ -3316,13 +4509,95 @@ import itertools
 from sklearn import svm, datasets
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
+from sklearn import metrics
+
+
+class_names = ['True','False']
+
+model = svm.SVC() #select the algorithm
+model.fit(classification_price_train_X,classification_price_train_y) # we train the algorithm with the training data and the training output
+prediction = model.predict(classification_price_test_X) #now we pass the testing data to the trained algorithm
+
+print('Classification Models using price')
+print('The accuracy of the SVM is:',metrics.accuracy_score(prediction,classification_price_test_y))#now we check the accuracy of the algorithm. 
+#we pass the predicted output by the model and the actual output
+
+
+def plot_confusion_matrix(cm, classes,
+                          normalize=False,
+                          title='Confusion matrix',
+                          cmap=plt.cm.Blues):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
+
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        print("Normalized confusion matrix")
+    else:
+        print('Confusion matrix, without normalization')
+
+    print(cm)
+
+    thresh = cm.max() / 2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j, i, cm[i, j],
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
+
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+
+# Compute confusion matrix
+cnf_matrix = confusion_matrix(classification_price_test_y, prediction)
+np.set_printoptions(precision=2)
+
+# Plot non-normalized confusion matrix
+plt.figure()
+plot_confusion_matrix(cnf_matrix, classes=class_names,
+                      title='Confusion matrix, without normalization')
+
+# Plot normalized confusion matrix
+plt.figure()
+plot_confusion_matrix(cnf_matrix, classes=class_names, normalize=True,
+                      title='Normalized confusion matrix')
+
+plt.show()
+
+# Release memory.
+plt.clf()
+plt.close()
+
+
+# In[69]:
+
+#based on http://scikit-learn.org/stable/auto_examples/model_selection/plot_confusion_matrix.html
+
+#Scikit-learn: Machine Learning in Python, Pedregosa et al., JMLR 12, pp. 2825-2830, 2011.
+
+
+import itertools
+from sklearn import svm, datasets
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
+from sklearn import metrics
 
 
 class_names = ['True','False']
 
 model = svm.SVC() #select the algorithm
 model.fit(train_X,train_y) # we train the algorithm with the training data and the training output
-prediction=model.predict(test_X) #now we pass the testing data to the trained algorithm
+prediction = model.predict(test_X) #now we pass the testing data to the trained algorithm
+
+print('Classification Models using lprice')
 print('The accuracy of the SVM is:',metrics.accuracy_score(prediction,test_y))#now we check the accuracy of the algorithm. 
 #we pass the predicted output by the model and the actual output
 
@@ -3382,7 +4657,115 @@ plt.close()
 
 
 
-# In[19]:
+# # Combined Classification models using price
+
+# In[95]:
+
+#ased on on https://www.kaggle.com/ash316/ml-from-scratch-with-iris
+
+import itertools
+from sklearn import svm, datasets
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
+
+
+def plot_confusion_matrix(cm, classes,
+                          normalize=False,
+                          title='Confusion matrix',
+                          cmap=plt.cm.Blues):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
+
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        print("Normalized confusion matrix")
+    else:
+        print('Confusion matrix, without normalization')
+
+    print(cm)
+
+    thresh = cm.max() / 2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j, i, cm[i, j],
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
+
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+
+
+
+def model_run(model_name):
+    model = model_name#svm.SVC() #select the algorithm
+    model.fit(classification_price_train_X,classification_price_train_y) # we train the algorithm with the training data and the training output
+    prediction=model.predict(classification_price_test_X) #now we pass the testing data to the trained algorithm
+    print("\n"*3)
+    print('Classification Models using price')
+    print model_name
+    print("\n"*3)
+    if str(model).startswith('SVC'):
+        print('The accuracy of the SVM is:',metrics.accuracy_score(prediction,test_y))#now we check the accuracy of the algorithm. 
+        print("\n"*3)
+    if str(model).startswith('LogisticRegression'):
+        print('The accuracy of the Logistical Regression is:',metrics.accuracy_score(prediction,test_y))#now we check the accuracy of the algorithm. 
+        print("\n"*3)
+    if str(model).startswith('DecisionTreeClassifier'):
+        print('The accuracy of the Decision Tree is:',metrics.accuracy_score(prediction,test_y))#now we check the accuracy of the algorithm. 
+        print("\n"*3)
+    if str(model).startswith('KNeighborsClassifier'):
+        print('The accuracy of the K nearesr Neighbour is:',metrics.accuracy_score(prediction,test_y))#now we check the accuracy of the algorithm. 
+        print("\n"*3)
+    
+# if model_name=='KNeighborsClassifier(n_neighbors=2)':   
+    
+    #we pass the predicted output by the model and the actual output
+
+    
+    # Compute confusion matrix
+    cnf_matrix = confusion_matrix(classification_price_test_y, prediction)
+    np.set_printoptions(precision=2)
+
+    # Plot non-normalized confusion matrix
+
+    plt.figure()
+    #plt.subplot(2,1,1)
+    #plt.figsize=(6, 3)
+    plot_confusion_matrix(cnf_matrix, classes=class_names,
+                      title='Confusion matrix, without normalization')
+
+    # Plot normalized confusion matrix
+    
+    plt.figure()
+    #plt.subplot(2,1,2)
+    #plt.figsize=(6, 3)
+    plot_confusion_matrix(cnf_matrix, classes=class_names, normalize=True,
+                      title='Normalized confusion matrix')
+    plt.show()
+ 
+    
+class_names = ['True','False']
+
+
+#Run the model and build the confusion matrix for each
+
+model_run(svm.SVC())
+model_run(LogisticRegression())
+model_run(DecisionTreeClassifier())
+model_run(KNeighborsClassifier(n_neighbors=2))
+
+
+# # Combined Classification models using lprice
+
+# In[83]:
 
 #ased on on https://www.kaggle.com/ash316/ml-from-scratch-with-iris
 
@@ -3431,6 +4814,8 @@ def model_run(model_name):
     model = model_name#svm.SVC() #select the algorithm
     model.fit(train_X,train_y) # we train the algorithm with the training data and the training output
     prediction=model.predict(test_X) #now we pass the testing data to the trained algorithm
+    print("\n"*3)
+    print('Classification Models using lprice')
     print model_name
     print("\n"*3)
     if str(model).startswith('SVC'):
@@ -3446,7 +4831,7 @@ def model_run(model_name):
         print('The accuracy of the K nearesr Neighbour is:',metrics.accuracy_score(prediction,test_y))#now we check the accuracy of the algorithm. 
         print("\n"*3)
     
- # if model_name=='KNeighborsClassifier(n_neighbors=2)':   
+# if model_name=='KNeighborsClassifier(n_neighbors=2)':   
     
     #we pass the predicted output by the model and the actual output
 
@@ -3471,9 +4856,7 @@ def model_run(model_name):
     plot_confusion_matrix(cnf_matrix, classes=class_names, normalize=True,
                       title='Normalized confusion matrix')
     plt.show()
-
-    
-    
+ 
     
 class_names = ['True','False']
 
@@ -3486,8 +4869,11 @@ model_run(DecisionTreeClassifier())
 model_run(KNeighborsClassifier(n_neighbors=2))
 
 
-# In[20]:
+# In[88]:
 
+
+from sklearn import svm, datasets
+from sklearn import metrics
 model = svm.SVC() #select the algorithm
 model.fit(train_X,train_y) # we train the algorithm with the training data and the training output
 prediction=model.predict(test_X) #now we pass the testing data to the trained algorithm
@@ -3501,63 +4887,64 @@ print('The accuracy of the SVM is:',metrics.accuracy_score(prediction,test_y))#n
 
 #Now we will follow the same steps as above for training various machine learning algorithms.
 
+
+
+# In[93]:
+
+from sklearn import svm, datasets
+from sklearn import metrics
+
+#SVM 
+model = svm.SVC() #select the algorithm
+model.fit(train_X,train_y) # we train the algorithm with the training data and the training output
+prediction=model.predict(test_X) #now we pass the testing data to the trained algorithm
+
+print('The accuracy of the SVM is:',metrics.accuracy_score(prediction,test_y))#now we check the accuracy of the algorithm. 
+#we pass the predicted output by the model and the actual output
+
+#SVM is giving very good accuracy . We will continue to check the accuracy for different models.
+
+#Now we will follow the same steps as above for training various machine learning algorithms.
+
+
+print('\n'*1)
+
 #Logistic Regression
-
-
-# In[ ]:
-
-
-
-
-# In[21]:
-
 model = LogisticRegression()
 model.fit(train_X,train_y)
 prediction=model.predict(test_X)
 print('The accuracy of the Logistic Regression is',metrics.accuracy_score(prediction,test_y))
 
-
-
-# In[87]:
-
-model
-
-
-# In[ ]:
+print('\n'*1)
 
 #Decision Tree
-
-
-# In[22]:
-
 
 model=DecisionTreeClassifier()
 model.fit(train_X,train_y)
 prediction=model.predict(test_X)
 print('The accuracy of the Decision Tree is',metrics.accuracy_score(prediction,test_y))
 
-
-
-# In[ ]:
+print('\n'*1)
 
 #K-Nearest Neighbours
-
-
-# In[23]:
-
 model=KNeighborsClassifier(n_neighbors=2) #n_neighbours=2 means we are trying to split them into 2 clusters
 model.fit(train_X,train_y)
 prediction=model.predict(test_X)
 print('The accuracy of the KNN is',metrics.accuracy_score(prediction,test_y))
 
 
-# In[89]:
+# In[ ]:
+
+
+
+
+# In[65]:
 
 import sklearn; print(sklearn.__file__)
 (sklearn.__version__) 
 
 
-# In[24]:
+# In[80]:
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import make_scorer, accuracy_score
@@ -3566,7 +4953,17 @@ from sklearn.metrics import make_scorer, accuracy_score
 from sklearn import grid_search #GridSearchCV
 
 
-# In[27]:
+#We have 'cut' included but the target is ideal_flag...a predictor which define the ideal_flag
+#We have dropped 'cut' as the target is ideal_flag which is based on cut value
+train_X = diamonds_train[['carat','clarity','color','x','y','z','depth','table','lprice']]# taking the training data features
+train_y = diamonds_train.ideal_flag# output of our training data
+test_X = diamonds_test[['carat','clarity','color','x','y','z','depth','table','lprice']] # taking test data features
+test_y = diamonds_test.ideal_flag   #output value of test data
+
+
+
+
+# In[82]:
 
 # Choose the type of classifier. 
 clf = RandomForestClassifier()
@@ -3594,12 +4991,14 @@ clf = grid_obj.best_estimator_
 clf.fit(train_X, train_y)
 
 
-# In[28]:
+# In[14]:
 
 #accuracy of our randomForest
 
 predictions = clf.predict(test_X)
 print(accuracy_score(test_y, predictions))
+
+print('The accuracy of the RandomForestClassifier is',metrics.accuracy_score(prediction,test_y))
 
 
 
@@ -3650,18 +5049,35 @@ run_kfold(clf)
 #Predict the Actual Test Data
 
 #And now for the moment of truth. Make the predictions, export the CSV file, and upload them to Kaggle.
-
+print('KFold using lprice')
 prediction = clf.predict(test_X)
 print('The accuracy of the last KFold is',metrics.accuracy_score(prediction,test_y))
 
+print('\n'*1)
+    
+# print('KFold using price')
+# prediction = clf.predict(test_X)
+# print('The accuracy of the last KFold is',metrics.accuracy_score(prediction,test_y))
 
 
 
-# In[3]:
+
+# In[64]:
+
+#We have 'cut' included but the target is ideal_flag...a predictor which define the ideal_flag
+#We have dropped 'cut' as the target is ideal_flag which is based on cut value
+train_X=diamonds_train[['carat','clarity','color','x','y','z','depth','table','lprice']]# taking the training data features
+train_y=diamonds_train.ideal_flag# output of our training data
+test_X=diamonds_test[['carat','clarity','color','x','y','z','depth','table','lprice']] # taking test data features
+test_y=diamonds_test.ideal_flag   #output value of test data
+
+
 
 #Import Library
+
 #Import other necessary libraries like pandas, numpy...
 from sklearn import tree
+from sklearn import metrics
 #Assumed you have, X (predictor) and Y (target) for training data set and x_test(predictor) of test_dataset
 # Create tree object 
 #model = tree.DecisionTreeClassifier(criterion='gini') # for classification, here you can change the algorithm as gini or entropy (information gain) by default it is gini  
@@ -3671,6 +5087,9 @@ model.fit(train_X, train_y)
 model.score(train_X, train_y)
 #Predict Output
 predicted= model.predict(test_X)
+
+print('The accuracy of the DecisionTreeRegressor is',metrics.accuracy_score(prediction,test_y))
+
 
 
 # # Rough Code to see where my error is in Lasso
