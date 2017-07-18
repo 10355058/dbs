@@ -631,7 +631,7 @@ boxplot(diamonds$price[diamonds$cut=='Fair'],diamonds$price[diamonds$cut=='Good'
 
 
 #cut.f <- factor(diamonds$color, levels= c('Fair','Good','Very Good','Premium','Ideal'),
-                  labels = c("Fair", "Good", "Very Good","Premium","Ideal"))
+                  #labels = c("Fair", "Good", "Very Good","Premium","Ideal"))
 #levels(factor(diamonds$color))
 #cut.f <- levels(factor(diamonds$color))
 
@@ -868,6 +868,95 @@ hist(diamonds$table)
 
 head(2 * diamonds$z / (diamonds$x + diamonds$y))
 head(diamonds)
+
+
+
+######################################### Wordcloud ##############################
+
+##New addition of Wordcloud2 
+
+## Install
+install.packages("tm")  # for text mining
+install.package("SnowballC") # for text stemming
+install.packages("wordcloud") # word-cloud generator 
+install.packages("RColorBrewer") # color palettes
+# Load
+# Load
+library("tm")
+library("SnowballC")
+library("wordcloud")
+library("RColorBrewer")
+
+
+####wordcloud2
+library(wordcloud2)
+
+
+#Added dataframe to handle length issue
+
+corp <- Corpus(DataframeSource(data.frame(diamonds$cut)))
+
+
+corp <- Corpus(DataframeSource(data.frame(x)))
+
+freq <- data.frame(count=termFreq(corp[[1]]))
+freq
+
+
+#http://www.sthda.com/english/wiki/text-mining-and-word-cloud-fundamentals-in-r-5-simple-steps-you-should-know
+
+corp <- tm_map(corp, removeNumbers)
+corp<- tm_map(corp,removePunctuation)
+corp<-tm_map(corp,stripWhitespace)
+corp <- tm_map(corp, removeWords, stopwords("english"))
+
+dtm <- DocumentTermMatrix(corp)
+#inspect(dtm)
+#(dtm)
+#dtm$dimnames
+#dtm$i
+#hist(dtm)
+#library(wordcloud);
+
+m = as.matrix(dtm);
+v = sort(colSums(m), decreasing=TRUE);
+myNames = names(v);
+k = which(names(v)=="miners");
+myNames[k] = "mining";
+d = data.frame(word=myNames, freq=v);
+
+
+head(demoFreq)
+
+wordcloud2(demoFreq, size=1.6)
+
+head(d)
+
+#Simple
+wordcloud2(d, size=1.6)
+
+# Gives a proposed palette
+wordcloud2(d, size=1.6, color='random-dark')
+
+# or a vector of colors. vector must be same length than input data
+wordcloud2(d, size=1.6, color=rep_len( c("green","blue"), nrow(d) ) )
+
+# Change the background color
+wordcloud2(d, size=1.6, color='random-light', backgroundColor="black")
+
+# Change the shape:
+wordcloud2(d, size = 0.7, shape = 'star')
+
+# Change the shape using your image
+wordcloud2(d, figPath = "C://Users//Developer//Documents//R//win-library//3.3//wordcloud2//examples//t.png", size = 1.5, color = "skyblue", backgroundColor="black")
+
+
+
+
+
+
+
+
 ########################################## Correlation #######################
 
 ####
@@ -1182,11 +1271,59 @@ diamonds[27416,]
 #Multiple R-squared:  0.9856147,	Adjusted R-squared:  0.9856083 
 #F-statistic: 153851.1 on 24 and 53892 DF,  p-value: < 0.00000000000000022204
 
+
+
 #Based on the crrelation matrix can we do with table and depth and we defiitely don't want to use price to predict lprice
 
 fit_unlimited <- lm(diamonds$lprice~ carat+cut+color+clarity+x+y+z+table+depth, data=diamonds)
 
 summary(fit_unlimited)
+
+# > fit_unlimited <- lm(diamonds$lprice~ carat+cut+color+clarity+x+y+z+table+depth, data=diamonds)
+# > summary(fit_unlimited)
+# 
+# Call:
+#   lm(formula = diamonds$lprice ~ carat + cut + color + clarity + 
+#        x + y + z + table + depth, data = diamonds)
+# 
+# Residuals:
+#   Min       1Q   Median       3Q      Max 
+# -1.39151 -0.08606 -0.00169  0.08528  2.31852 
+# 
+# Coefficients:
+#   Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)  -2.8763726  0.0789283  -36.44   <2e-16 ***
+#   carat        -1.0269482  0.0062243 -164.99   <2e-16 ***
+#   cutGood       0.0748636  0.0040951   18.28   <2e-16 ***
+#   cutIdeal      0.1465455  0.0040496   36.19   <2e-16 ***
+#   cutPremium    0.1177076  0.0038698   30.42   <2e-16 ***
+#   cutVery Good  0.1063167  0.0039596   26.85   <2e-16 ***
+#   colorE       -0.0565461  0.0021433  -26.38   <2e-16 ***
+#   colorF       -0.0958290  0.0021677  -44.21   <2e-16 ***
+#   colorG       -0.1616616  0.0021225  -76.17   <2e-16 ***
+#   colorH       -0.2562522  0.0022568 -113.55   <2e-16 ***
+#   colorI       -0.3768155  0.0025355 -148.62   <2e-16 ***
+#   colorJ       -0.5143505  0.0031306 -164.30   <2e-16 ***
+#   clarityIF     1.0870412  0.0061352  177.18   <2e-16 ***
+#   claritySI1    0.5795787  0.0052481  110.44   <2e-16 ***
+#   claritySI2    0.4136588  0.0052670   78.54   <2e-16 ***
+#   clarityVS1    0.7945597  0.0053580  148.29   <2e-16 ***
+#   clarityVS2    0.7265638  0.0052733  137.78   <2e-16 ***
+#   clarityVVS1   0.9954282  0.0056699  175.56   <2e-16 ***
+#   clarityVVS2   0.9240485  0.0055148  167.56   <2e-16 ***
+#   x             0.7577711  0.0124132   61.05   <2e-16 ***
+#   y             0.3535061  0.0126973   27.84   <2e-16 ***
+#   z             0.4755536  0.0176559   26.93   <2e-16 ***
+#   table         0.0099031  0.0003506   28.25   <2e-16 ***
+#   depth         0.0359330  0.0011504   31.23   <2e-16 ***
+#   ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+# 
+# Residual standard error: 0.1354 on 53892 degrees of freedom
+# Multiple R-squared:  0.9822,	Adjusted R-squared:  0.9822 
+# F-statistic: 1.293e+05 on 23 and 53892 DF,  p-value: < 2.2e-16
+
+
 
 plot(fit_unlimited);
 
@@ -1202,6 +1339,15 @@ fit_limited<-lm(diamonds$lprice~ carat+cut+color+clarity+x+y+z ,data=diamonds)
 summary(fit_limited)
 
 plot(fit_limited)
+
+
+# Try with just x and cut - as x is highly correlated with y,z depth,carat
+fit_limited_min<-lm(diamonds$lprice~ cut+x ,data=diamonds)
+
+summary(fit_limited_min)
+
+plot(fit_limited_min)
+
 
 
 
@@ -1305,14 +1451,103 @@ null
 step(null, scope=list(lower=null, upper=fit_unlimited), direction="forward")
 
 
+# Call:
+#   lm(formula = lprice ~ y + clarity + color + carat + z + x + cut + 
+#        depth + table, data = diamonds)
+# 
+# Coefficients:
+#   (Intercept)             y     clarityIF    claritySI1    claritySI2    clarityVS1    clarityVS2   clarityVVS1  
+# -2.876373      0.353506      1.087041      0.579579      0.413659      0.794560      0.726564      0.995428  
+# clarityVVS2        colorE        colorF        colorG        colorH        colorI        colorJ         carat  
+# 0.924049     -0.056546     -0.095829     -0.161662     -0.256252     -0.376815     -0.514350     -1.026948  
+# z             x       cutGood      cutIdeal    cutPremium  cutVery Good         depth         table  
+# 0.475554      0.757771      0.074864      0.146546      0.117708      0.106317      0.035933      0.009903  
+
+
+
+
 step(fit_unlimited, data=diamonds, direction="backward")
+
+# Call:
+#   lm(formula = diamonds$lprice ~ carat + cut + color + clarity + 
+#        x + y + z + table + depth, data = diamonds)
+# 
+# Coefficients:
+#   (Intercept)         carat       cutGood      cutIdeal    cutPremium  cutVery Good        colorE        colorF        colorG        colorH        colorI  
+# -2.876373     -1.026948      0.074864      0.146546      0.117708      0.106317     -0.056546     -0.095829     -0.161662     -0.256252     -0.376815  
+# colorJ     clarityIF    claritySI1    claritySI2    clarityVS1    clarityVS2   clarityVVS1   clarityVVS2             x             y             z  
+# -0.514350      1.087041      0.579579      0.413659      0.794560      0.726564      0.995428      0.924049      0.757771      0.353506      0.475554  
+# table         depth  
+# 0.009903      0.035933 
+
+
+
 
 #stepwise regression both
 step(null, scope = list(upper=fit_unlimited), data=diamonds, direction="both")
 
+# Call:
+#   lm(formula = lprice ~ y + clarity + color + carat + z + x + cut + 
+#        depth + table, data = diamonds)
+# 
+# Coefficients:
+#   (Intercept)             y     clarityIF    claritySI1    claritySI2    clarityVS1    clarityVS2   clarityVVS1   clarityVVS2        colorE        colorF  
+# -2.876373      0.353506      1.087041      0.579579      0.413659      0.794560      0.726564      0.995428      0.924049     -0.056546     -0.095829  
+# colorG        colorH        colorI        colorJ         carat             z             x       cutGood      cutIdeal    cutPremium  cutVery Good  
+# -0.161662     -0.256252     -0.376815     -0.514350     -1.026948      0.475554      0.757771      0.074864      0.146546      0.117708      0.106317  
+# depth         table  
+# 0.035933      0.009903  
+# 
+# > 
+
+#lm(formula = lprice ~ y + clarity + color + carat + z + x + cut + 
+     #        depth + table, data = diamonds)
+
 
 
 AIC(fit_unlimited)
+# > AIC(fit_unlimited)
+# [1] -62614.84
+# > 
+
+
+library(MASS)
+step <- stepAIC(fit_unlimited, direction="both")
+# Start:  AIC=-215623.8
+# diamonds$lprice ~ carat + cut + color + clarity + x + y + z + 
+#   table + depth
+# 
+# Df Sum of Sq     RSS     AIC
+# <none>                  987.36 -215624
+# - z        1     13.29 1000.65 -214905
+# - y        1     14.20 1001.56 -214856
+# - table    1     14.62 1001.98 -214833
+# - depth    1     17.87 1005.24 -214659
+# - cut      4     32.88 1020.25 -213865
+# - x        1     68.27 1055.64 -212021
+# - carat    1    498.73 1486.09 -193581
+# - color    6    885.83 1873.19 -181110
+# - clarity  7   1754.98 2742.34 -160561
+# > 
+
+
+step$anova # display results 
+
+# > step$anova # display results
+# Stepwise Model Path 
+# Analysis of Deviance Table
+# 
+# Initial Model:
+#   diamonds$lprice ~ carat + cut + color + clarity + x + y + z + 
+#   table + depth
+# 
+# Final Model:
+#   diamonds$lprice ~ carat + cut + color + clarity + x + y + z + 
+#   table + depth
+# 
+# 
+# Step Df Deviance Resid. Df Resid. Dev       AIC
+# 1                      53892   987.3628 -215623.8
 
 
 #Stepwise for fit_liminted
@@ -1336,6 +1571,54 @@ AIC(fit_limited)
 
 #> AIC(fit_limited)
 #[1]  -61123.75
+
+
+################################ All Subsets Regression ####################################
+#http://www.statmethods.net/stats/regression.html
+
+
+
+library(leaps)
+#attach(mydata)
+leaps<-regsubsets(lprice ~ carat + cut + color + clarity + x + y + z + table + depth,data=diamonds,nbest3)
+# view results
+summary(leaps)
+# plot a table of models showing variables in each model.
+# models are ordered by the selection statistic.
+plot(leaps,scale="r2")
+# plot statistic by subset size
+library(car)
+subsets(leaps, statistic="rsq") 
+
+
+################## Calculate Relative Importance for Each Predictor#################
+#Ulrike Grömping (2006). Relative Importance for Linear Regression in R: The Package relaimpo. Journal of Statistical Software, 17(1), 1--27. 
+library(relaimpo)
+calc.relimp(fit_unlimited,type=c("carat" ,"cut" , "color" , "clarity" , "x" , "y" ,"z" , "table" , "depth"), rela=TRUE)
+
+# Bootstrap Measures of Relative Importance (1000 samples)
+boot <- boot.relimp(fit, b = 1000, type = c("carat" ,"cut" , "color" , "clarity" , "x" , "y" ,"z" , "table" , "depth"), rank = TRUE,
+                    diff = TRUE, rela = TRUE)
+booteval.relimp(boot) # print result
+plot(booteval.relimp(boot,sort=TRUE)) # plot result 
+
+################################# Gradient Boost##########################
+install.packages("gbm")
+library(gbm)
+gbm = gbm(lprice ~carat+cut+color+clarity+x+y+z+table+depth, diamonds_train,
+          n.trees=1000,
+          shrinkage=0.01,
+          distribution="gaussian",
+          interaction.depth=7,
+          bag.fraction=0.9,
+          cv.fold=10,
+          n.minobsinnode = 50
+)
+
+gbm.perf(gbm) 
+gbm.Summary(gbm)
+#############################
+
 
 ###################################### Lets Look at Multicolliniarity ##############################
 
@@ -1504,6 +1787,34 @@ vif(lm(lprice~.,data=diamond_ridge_columns))
 #   ---
 #   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 # > 
+
+anova(fit_limited, fit_limited_min)
+
+# Analysis of Variance Table
+# 
+# Model 1: diamonds$lprice ~ carat + cut + color + clarity + x + y + z
+# Model 2: diamonds$lprice ~ cut + x
+# Res.Df    RSS  Df Sum of Sq     F    Pr(>F)    
+# 1  53894 1015.1                                  
+# 2  53910 4148.2 -16   -3133.1 10397 < 2.2e-16 ***
+#   ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+# > 
+
+anova(fit_limited_min, fit_limited)
+
+#Analysis of Variance Table
+
+# Model 1: diamonds$lprice ~ cut + x
+# Model 2: diamonds$lprice ~ carat + cut + color + clarity + x + y + z
+# Res.Df    RSS Df Sum of Sq     F    Pr(>F)    
+# 1  53910 4148.2                                 
+# 2  53894 1015.1 16    3133.1 10397 < 2.2e-16 ***
+#   ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+# > 
+
+
 
 fit_limited<-lm(diamonds$lprice~ carat+cut+color+clarity+x+y+z ,data=diamonds)
 
@@ -1677,6 +1988,8 @@ output <- predict(mod, data.frame(diamonds_test))
 
 output
 output_price <-exp(output)
+
+output_price_new <-( 10 ^ (output) )
 head(output_price)
 
 summary(output_price)
@@ -1741,6 +2054,14 @@ text(fit, use.n=TRUE, all=TRUE, cex=.8)
 
 #y is the key to branching
 
+
+
+
+
+
+
+
+
 ####################################Classification Models#######################################
 
 summary(diamonds)
@@ -1758,6 +2079,34 @@ diamonds$ideal_flag <- ifelse(diamonds$cut =='Ideal', "True", "False")
 
 
 tail(diamonds)
+
+
+
+############################## Regression Tree ideal_flag ##########
+
+# Regression Tree Example
+library(rpart)
+
+# grow tree
+
+fit<-rpart(diamonds$ideal_flag~lprice+carat+cut+color+clarity+x+y+z+table+depth,method="anova",data=diamonds)
+
+
+printcp(fit) # display the results
+plotcp(fit) # visualize cross-validation results
+summary(fit) # detailed summary of splits
+
+# create additional plots
+par(mfrow=c(1,2)) # two plots on one page
+rsq.rpart(fit) # visualize cross-validation results  
+
+# plot tree
+plot(fit, uniform=TRUE,
+     main="Regression Tree for LPrice ")
+text(fit, use.n=TRUE, all=TRUE, cex=.8)
+
+
+
 
 ####################################### SVM #######################################
 
@@ -1805,6 +2154,8 @@ library(e1071)
 summary(diamonds_data)
 
 svm_model<-svm(diamonds_data$ideal_flag~.,data=diamonds_data)
+svm_model<-svm(diamonds_data$lprice~.,data=diamonds_data)
+
 
 plot(svm_model,diamonds_data)
 
@@ -1964,6 +2315,7 @@ diamonds_scaled <- data.frame(diamonds_scaled, fit$cluster)
 
 plot(diamonds_scaled)
 
+plot(fit)
      
 ########################################################## Ward Hierarchical Clustering #####################################################
      
@@ -1987,6 +2339,18 @@ fit_mod_clust <- Mclust(diamonds_scaled)
 plot(fit_mod_clust ,main="Model Based Clustering") # plot results
 summary(fit_mod_clust ) # display the best model 
 
+######################################## HClust #################################
+
+
+clusters <- hclust(dist(diamonds_scaled))
+plot(clusters)
+clusterCut <- cutree(clusters, 6)
+
+table(clusterCut, diamonds_scaled$price)
+
+
+clusters <- hclust(dist(diamonds_scaled), method = 'average')
+plot(clusters)
 
 
 ######################################## GLM #####################################
@@ -2101,6 +2465,11 @@ nn <- neuralnet(lprice ~ carat + cutGood + cutIdeal + cutPremium +
 
 
 plot(nn)
+
+
+
+
+
 
 ################################################## Write data after munging ##################
 
