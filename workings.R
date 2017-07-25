@@ -970,7 +970,7 @@ wordcloud2(d, figPath = "C://Users//Developer//Documents//R//win-library//3.3//w
 
 ###
 
-
+library(corrplot)
 #plot(diamonds)
 
 unique(diamonds$price)
@@ -1007,7 +1007,7 @@ diamonds_temp<-ifelse((diamonds_temp>0.5),1,0)
 diamonds_temp
 
 
-
+################################# Plot Correlations ###########
 
 library('corrplot') #package corrplot
 
@@ -1712,7 +1712,7 @@ qplot(lambda,coefficients,data=ridge_data,colour=variable,
 # }
 
 
-######################### ridge::linearRidge on subset of data
+######################### ridge::linearRidge on subset of data #############
 
 library(ridge);
 
@@ -1740,6 +1740,140 @@ summary(mod_ridge);
 #Ridge parameter: 0.0002861769, chosen automatically, computed using 15 PCs
 #Degrees of freedom: model 22.61 , variance 22.29 , residual 22.93 
 
+################################### Review effect of Collinearity ###########
+
+# x,y,z are highly correlated with lprice
+
+# lprice
+# carat  0.92025703
+# depth  0.00102427
+# table  0.15813521
+# price  0.89579565
+# x      0.96072189
+# y      0.96151210
+# z      0.95661731
+# lprice 1.00000000
+
+#and highly correlated with each other
+
+#           carat       depth      table       price           x           y          z
+# carat  1.00000000  0.02846391  0.1813350  0.92157713  0.97777605  0.97685769 0.97648000
+# depth  0.02846391  1.00000000 -0.2958617 -0.01055685 -0.02484842 -0.02798319 0.09682683
+# table  0.18133502 -0.29586166  1.0000000  0.12684135  0.19589908  0.18972611 0.15571773
+# price  0.92157713 -0.01055685  0.1268414  1.00000000  0.88720977  0.88880623 0.88209827
+# x      0.97777605 -0.02484842  0.1958991  0.88720977  1.00000000  0.99865720 0.99107745
+# y      0.97685769 -0.02798319  0.1897261  0.88880623  0.99865720  1.00000000 0.99073084
+# z      0.97648000  0.09682683  0.1557177  0.88209827  0.99107745  0.99073084 1.00000000
+# lprice 0.92025703  0.00102427  0.1581352  0.89579565  0.96072189  0.96151210 0.95661731
+# 
+
+
+#Just y
+fit_mcol<-lm(lprice~y ,data=diamonds_train)
+summary(fit_mcol)
+
+# Residual standard error: 0.2777 on 37740 degrees of freedom
+# Multiple R-squared:  0.9252,	Adjusted R-squared:  0.9252 
+# F-statistic: 4.668e+05 on 1 and 37740 DF,  p-value: < 2.2e-16
+
+#Just x
+fit_mcol<-lm(lprice~x ,data=diamonds_train)
+summary(fit_mcol)
+
+# Residual standard error: 0.2805 on 37740 degrees of freedom
+# Multiple R-squared:  0.9237,	Adjusted R-squared:  0.9237 
+# F-statistic: 4.568e+05 on 1 and 37740 DF,  p-value: < 2.2e-16
+
+#Just z
+fit_mcol<-lm(lprice~z ,data=diamonds_train)
+summary(fit_mcol)
+
+#Residual standard error: 0.295 on 37740 degrees of freedom
+#Multiple R-squared:  0.9156,	Adjusted R-squared:  0.9156 
+#F-statistic: 4.094e+05 on 1 and 37740 DF,  p-value: < 2.2e-16
+
+#Just carat
+fit_mcol<-lm(lprice~carat ,data=diamonds_train)
+summary(fit_mcol)
+
+# Residual standard error: 0.394 on 37740 degrees of freedom
+# Multiple R-squared:  0.8494,	Adjusted R-squared:  0.8494 
+# F-statistic: 2.129e+05 on 1 and 37740 DF,  p-value: < 2.2e-16
+
+
+#Just depth
+fit_mcol<-lm(lprice~depth ,data=diamonds_train)
+summary(fit_mcol)
+
+# Residual standard error: 1.015 on 37740 degrees of freedom
+# Multiple R-squared:  5.963e-06,	Adjusted R-squared:  -2.053e-05 
+# F-statistic: 0.225 on 1 and 37740 DF,  p-value: 0.6352
+
+
+#Just table
+fit_mcol<-lm(lprice~table ,data=diamonds_train)
+summary(fit_mcol)
+
+#Residual standard error: 1.003 on 37740 degrees of freedom
+#Multiple R-squared:  0.02463,	Adjusted R-squared:  0.0246 
+#F-statistic:   953 on 1 and 37740 DF,  p-value: < 2.2e-16
+
+
+##################################### Show eviednce of effect of multicollinearity #############
+
+#Just y
+fit_mcol<-lm(lprice~y ,data=diamonds_train)
+summary(fit_mcol)
+
+# Residual standard error: 0.2777 on 37740 degrees of freedom
+# Multiple R-squared:  0.9252,	Adjusted R-squared:  0.9252 
+# F-statistic: 4.668e+05 on 1 and 37740 DF,  p-value: < 2.2e-16
+
+#Just y + x
+fit_mcol<-lm(lprice~y + x ,data=diamonds_train)
+summary(fit_mcol)
+
+# Residual standard error: 0.2776 on 37739 degrees of freedom
+# Multiple R-squared:  0.9253,	Adjusted R-squared:  0.9253 
+# F-statistic: 2.336e+05 on 2 and 37739 DF,  p-value: < 2.2e-16
+
+#Just y + z
+fit_mcol<-lm(lprice~y + z ,data=diamonds_train)
+summary(fit_mcol)
+
+# Residual standard error: 0.2761 on 37739 degrees of freedom
+# Multiple R-squared:  0.9261,	Adjusted R-squared:  0.926 
+# F-statistic: 2.363e+05 on 2 and 37739 DF,  p-value: < 2.2e-16
+
+
+#Just x
+fit_mcol<-lm(lprice~x ,data=diamonds_train)
+summary(fit_mcol)
+
+# Residual standard error: 0.2805 on 37740 degrees of freedom
+# Multiple R-squared:  0.9237,	Adjusted R-squared:  0.9237 
+# F-statistic: 4.568e+05 on 1 and 37740 DF,  p-value: < 2.2e-16
+
+
+fit_mcol<-lm(lprice~x + z ,data=diamonds_train)
+summary(fit_mcol)
+
+# Residual standard error: 0.2784 on 37739 degrees of freedom
+# Multiple R-squared:  0.9248,	Adjusted R-squared:  0.9248 
+# F-statistic: 2.321e+05 on 2 and 37739 DF,  p-value: < 2.2e-16
+
+
+#So the additional of highly collinear predictors does't really improve the model
+# so as a consequence that the individaula estimate of the improtance of the predict is 
+# affected, we drop the collinear predictors. Multicollinearity incrreases the 
+#Standrad errors of the coefficients
+#Increased standard errors may mean the coefficents for some of the coefficients
+#may not be significantly different from zero - predictors become statistically insignificant when they are
+
+
+#if no collinear predictors vif = 1
+###################Resul
+
 
 
 ################################## vif #########################################
@@ -1752,6 +1886,547 @@ vif(lm(GNP~.,data=longley));
 
 vif(lm(lprice~.,data=diamond_ridge_columns))
 
+# > vif(lm(lprice~.,data=diamond_ridge_columns))
+# GVIF Df GVIF^(1/(2*Df))
+# carat    25.588665  1        5.058524
+# cut       2.319963  4        1.110926
+# color     1.181595  6        1.014003
+# clarity   1.362049  7        1.022316
+# depth     7.989743  1        2.826613
+# table     1.795468  1        1.339951
+# x       568.148234  1       23.835860
+# y       585.846847  1       24.204273
+# z       438.784662  1       20.947187
+
+
+vif(lm(lprice~.,data=diamonds_train))
+# > vif(lm(lprice~.,data=diamonds_train))
+# GVIF Df GVIF^(1/(2*Df))
+# carat    51.930134  1        7.206257
+# cut       2.364578  4        1.113574
+# color     1.488193  6        1.033685
+# clarity   2.058591  7        1.052926
+# depth     7.146535  1        2.673300
+# table     1.801589  1        1.342233
+# price    12.908401  1        3.592826
+# x       596.896987  1       24.431475
+# y       615.102083  1       24.801252
+# z       381.615807  1       19.534989
+
+vif(lm(lprice~x + y + z + carat,data=diamonds_train))
+# x         y         z     carat 
+# 429.79389 409.07748  60.57442  24.97715 
+
+
+#### Isolate out Collinear Predictors in VIF ################
+
+vif(lm(y~x + z + carat,data=diamonds_train))
+
+
+# > vif(lm(y~x + z + carat,data=diamonds_train))
+# x        z    carat 
+# 63.93557 59.46674 24.97620 
+
+
+###################################### Solution is to drop highly correlated predictors #####
+
+
+
+#Just use all -  
+fit_mcol<-lm(lprice~.,data=diamonds_train)
+summary(fit_mcol)
+
+# Residual standard error: 0.1206 on 37717 degrees of freedom
+# Multiple R-squared:  0.9859,	Adjusted R-squared:  0.9859 
+# F-statistic: 1.099e+05 on 24 and 37717 DF,  p-value: < 2.2e-16
+
+# here the unlimited fit
+#fit_unlimited <- lm(diamonds$lprice~ carat+cut+color+clarity+x+y+z+table+depth, data=diamonds)
+
+pdf("mcol_comparison.pdf")
+
+fit_mcol_yxz<-lm(lprice~ carat+cut+color+clarity+x+y+z+table+depth,data=diamonds_train)
+summary(fit_mcol_yxz)
+
+plot(fit_mcol_yxz)
+
+
+#dev.off()
+
+
+# Residual standard error: 0.1346 on 37718 degrees of freedom
+# Multiple R-squared:  0.9824,	Adjusted R-squared:  0.9824 
+# F-statistic: 9.172e+04 on 23 and 37718 DF,  p-value: < 2.2e-16
+
+
+anova(fit_mcol_yxz)
+
+# > anova(fit_mcol_yxz)
+# Analysis of Variance Table
+# 
+# Response: lprice
+# Df Sum Sq Mean Sq    F value    Pr(>F)    
+# carat         1  33047   33047 1823915.49 < 2.2e-16 ***
+#   cut           4     71      18     985.21 < 2.2e-16 ***
+#   color         6    728     121    6699.11 < 2.2e-16 ***
+#   clarity       7    813     116    6407.13 < 2.2e-16 ***
+#   x             1   3320    3320  183230.67 < 2.2e-16 ***
+#   y             1     13      13     725.42 < 2.2e-16 ***
+#   z             1    200     200   11051.56 < 2.2e-16 ***
+#   table         1      6       6     309.27 < 2.2e-16 ***
+#   depth         1     24      24    1314.33 < 2.2e-16 ***
+#   Residuals 37718    683       0                         
+# ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+# > 
+
+
+
+#So now drop x and z
+
+fit_mcol_noxz<-lm(lprice~ carat+cut+color+clarity+y+table+depth,data=diamonds_train)
+summary(fit_mcol_noxz)
+
+# Residual standard error: 0.1418 on 37720 degrees of freedom
+# Multiple R-squared:  0.9805,	Adjusted R-squared:  0.9805 
+# F-statistic: 9.035e+04 on 21 and 37720 DF,  p-value: < 2.2e-16
+
+plot(fit_mcol_noxz)
+
+aov(lprice~ carat+cut+color+clarity+y+table+depth,data=diamonds_train)
+
+
+
+fit_mcol_noxzcarat<-lm(lprice~ cut+color+clarity+y+table+depth,data=diamonds_train)
+summary(fit_mcol_noxzcarat)
+
+plot(fit_mcol_noxzcarat)
+
+# Residual standard error: 0.1676 on 37721 degrees of freedom
+# Multiple R-squared:  0.9728,	Adjusted R-squared:  0.9728 
+# F-statistic: 6.74e+04 on 20 and 37721 DF,  p-value: < 2.2e-16
+
+
+##So R squared  show how well the data are to the fitted regresson line - the coefficient of multiple determination
+## the percentage of the response variable variation that is explained by the linear model
+#R-squared = Explained variation / Total variation
+#0% model explain none of vraiability of the response data around its mean
+#100% moel explains all of the variability of the the repsonse data around its mean
+
+#the F-test value compared the intercept-only Model (no predictors) without model
+#If the P-value for the F-test of overall significance is less than our significance level,
+#then we can erject null hypothesis (intercept model and out model are equal) and assume that our model is better fit than intercept-only model
+
+
+anova(fit_mcol_yxz,fit_mcol_noxz)
+
+# > anova(fit_mcol_yxz,fit_mcol_noxz)
+# Analysis of Variance Table
+# 
+# Model 1: lprice ~ carat + cut + color + clarity + x + y + z + table + 
+#   depth
+# Model 2: lprice ~ carat + cut + color + clarity + y + table + depth
+# Res.Df    RSS Df Sum of Sq    F    Pr(>F)    
+# 1  37718 683.40                                
+# 2  37720 758.33 -2   -74.937 2068 < 2.2e-16 ***
+#   ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+dev.off()
+
+
+
+
+
+
+###################################### Ridge also deal with collinear predictors ###########
+
+library(dplyr)
+diamond_ridge_sample<-NULL
+mod_ridge<-NULL
+
+diamond_ridge_sample <- sample_n(diamonds, 21000)
+
+#diamond_ridge_sample <- sample_n(diamonds, 21000)
+
+mod_ridge<-NULL
+mod_ridge<-ridge::linearRidge(lprice~ carat+cut+color+clarity+x+y+z+table+depth, data=diamond_ridge_sample,lambda="automatic"); 
+
+summary(mod_ridge);
+
+#Try all the training data 
+mod_ridge<-NULL
+
+set.seed(1979)
+
+diamond_ridge_sample <- sample_n(diamonds_train, 10000)
+mod_ridge<-ridge::linearRidge(lprice~ carat+cut+color+clarity+x+y+z+table+depth, data=diamond_ridge_sample,lambda="automatic"); 
+summary(mod_ridge);
+
+# > summary(mod_ridge);
+# 
+# Call:
+#   ridge::linearRidge(formula = lprice ~ carat + cut + color + clarity + 
+#                        x + y + z + table + depth, data = diamond_ridge_sample, lambda = "automatic")
+# 
+# 
+# Coefficients:
+#   Estimate Scaled estimate Std. Error (scaled) t value (scaled) Pr(>|t|)    
+# (Intercept)   -3.19331              NA                  NA               NA       NA    
+# carat         -1.00468       -47.61489             0.67620           70.415  < 2e-16 ***
+#   cutGood        0.03315         0.95048             0.26986            3.522 0.000428 ***
+#   cutIdeal       0.11280         5.53025             0.45736           12.092  < 2e-16 ***
+#   cutPremium     0.09032         3.91505             0.39052           10.025  < 2e-16 ***
+#   cutVery Good   0.06798         2.85117             0.37945            7.514 5.73e-14 ***
+#   colorE        -0.05510        -2.10935             0.19124           11.030  < 2e-16 ***
+#   colorF        -0.09295        -3.51108             0.19093           18.389  < 2e-16 ***
+#   colorG        -0.15819        -6.41470             0.20003           32.069  < 2e-16 ***
+#   colorH        -0.25549        -9.33080             0.18996           49.119  < 2e-16 ***
+#   colorI        -0.36956       -11.29564             0.17758           63.609  < 2e-16 ***
+#   colorJ        -0.50348       -11.33963             0.16202           69.991  < 2e-16 ***
+#   clarityIF      1.07058        19.01207             0.24411           77.884  < 2e-16 ***
+#   claritySI1     0.57684        24.67799             0.49659           49.695  < 2e-16 ***
+#   claritySI2     0.40941        15.50714             0.44176           35.103  < 2e-16 ***
+#   clarityVS1     0.78871        28.02280             0.42189           66.422  < 2e-16 ***
+#   clarityVS2     0.71760        29.93747             0.48696           61.479  < 2e-16 ***
+#   clarityVVS1    0.98675        25.20974             0.32148           78.417  < 2e-16 ***
+#   clarityVVS2    0.92066        27.08392             0.35956           75.326  < 2e-16 ***
+#   x              0.60076        67.45651             2.09759           32.159  < 2e-16 ***
+#   y              0.55757        62.15583             2.12204           29.291  < 2e-16 ***
+#   z              0.38314        26.59922             1.79609           14.810  < 2e-16 ***
+#   table          0.01092         2.41557             0.18045           13.387  < 2e-16 ***
+#   depth          0.04131         5.92956             0.27092           21.887  < 2e-16 ***
+#   ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+# 
+# Ridge parameter: 0.0006034921, chosen automatically, computed using 15 PCs
+# 
+# Degrees of freedom: model 22.33 , variance 21.85 , residual 22.81 
+
+
+sumar<-summary(mod_ridge)
+sumar$summaries$summary1$coefficients
+
+
+#Drop x, z
+diamond_ridge_sample <- sample_n(diamonds_train, 10000)
+mod_ridge<-ridge::linearRidge(lprice~ carat+cut+color+clarity+y+table+depth, data=diamond_ridge_sample,lambda="automatic"); 
+summary(mod_ridge);
+
+
+# Call:
+#   ridge::linearRidge(formula = lprice ~ carat + cut + color + clarity + 
+#                        y + table + depth, data = diamond_ridge_sample, lambda = "automatic")
+# 
+# 
+# Coefficients:
+#   Estimate Scaled estimate Std. Error (scaled) t value (scaled) Pr(>|t|)    
+# (Intercept)   -4.38044              NA                  NA               NA       NA    
+# carat         -0.89106       -42.23003             0.68012           62.092  < 2e-16 ***
+#   cutGood       -0.01271        -0.36457             0.27684            1.317    0.188    
+# cutIdeal       0.07445         3.64991             0.46928            7.778 7.33e-15 ***
+#   cutPremium     0.07618         3.30218             0.40228            8.209 2.22e-16 ***
+#   cutVery Good   0.01380         0.57888             0.38738            1.494    0.135    
+# colorE        -0.05361        -2.05263             0.19854           10.338  < 2e-16 ***
+#   colorF        -0.09116        -3.44349             0.19821           17.373  < 2e-16 ***
+#   colorG        -0.15605        -6.32819             0.20763           30.478  < 2e-16 ***
+#   colorH        -0.25279        -9.23194             0.19719           46.817  < 2e-16 ***
+#   colorI        -0.37297       -11.39967             0.18434           61.842  < 2e-16 ***
+#   colorJ        -0.50716       -11.42264             0.16825           67.889  < 2e-16 ***
+#   clarityIF      1.02328        18.17214             0.25019           72.632  < 2e-16 ***
+#   claritySI1     0.54263        23.21418             0.50713           45.775  < 2e-16 ***
+#   claritySI2     0.37756        14.30063             0.45145           31.677  < 2e-16 ***
+#   clarityVS1     0.74983        26.64139             0.43090           61.828  < 2e-16 ***
+#   clarityVS2     0.68182        28.44453             0.49724           57.205  < 2e-16 ***
+#   clarityVVS1    0.94354        24.10591             0.32872           73.333  < 2e-16 ***
+#   clarityVVS2    0.87867        25.84863             0.36742           70.352  < 2e-16 ***
+#   y              1.34796       150.26657             0.67824          221.554  < 2e-16 ***
+#   table          0.01186         2.62364             0.18729           14.008  < 2e-16 ***
+#   depth          0.06367         9.13833             0.17159           53.257  < 2e-16 ***
+#   ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+# 
+# Ridge parameter: 0.0009039807, chosen automatically, computed using 15 PCs
+# 
+# Degrees of freedom: model 20.86 , variance 20.72 , residual 20.99 
+
+
+
+
+
+
+
+
+################################ Weka ###################################
+
+
+if(Sys.getenv("JAVA_HOME")!=""){
+  Sys.setenv(JAVA_HOME="")
+}
+
+
+
+#print(Sys.setenv(R_TEST = "testit", "A+C" = 123))  # `A+C` could also be used
+#Sys.getenv("R_TEST")
+#Sys.unsetenv("R_TEST")
+#Sys.getenv("R_TEST", unset = NA)
+
+
+
+
+#C:\Program Files\Java\jre1.8.0_141
+
+#Sys.setenv(JAVA_HOME='C:\Program Files (x86)\Java\jre1.8.0_141')
+
+Sys.setenv(JAVA_HOME='C:/Program Files/Java/jre1.8.0_141')
+
+library(rJava)
+library(RWekajars)
+library(RWeka)
+
+
+## Linear regression:
+## Using standard data set 'mtcars'.
+#LinearRegression(mpg ~ ., data = mtcars)
+## Compare to R:
+#step(lm(mpg ~ ., data = mtcars), trace = 0)
+
+
+#RWeka::l
+fit_weka <- LinearRegression(diamonds$lprice~ carat+cut+color+clarity+x+y+z+table+depth, data=diamonds)
+
+summary(fit_weka)
+
+# === Summary ===
+#   
+#   Correlation coefficient                  0.9911
+# Mean absolute error                      0.1043
+# Root mean squared error                  0.1353
+# Relative absolute error                 11.9011 %
+# Root relative squared error             13.3389 %
+# Total Number of Instances            53916 
+# 
+
+plot(residuals(fit_weka),fit_weka$fitted.values,main="Residuals vs Fitted Values")
+
+print(fit_weka)
+
+# Linear Regression Model
+# 
+# diamonds$lprice =
+#   
+#   -1.0269 * carat +
+#   -0.0402 * cut=Very Good,Good,Premium,Fair +
+#   -0.0315 * cut=Good,Premium,Fair +
+#   0.0428 * cut=Premium,Fair +
+#   -0.1177 * cut=Fair +
+#   0.0565 * color=D,F,G,H,I,J +
+#   -0.0958 * color=F,G,H,I,J +
+#   -0.0658 * color=G,H,I,J +
+#   -0.0946 * color=H,I,J +
+#   -0.1206 * color=I,J +
+#   -0.1375 * color=J +
+#   0.0916 * clarity=IF,VVS2,VS1,VS2,SI1,I1,SI2 +
+#   -0.163  * clarity=VVS2,VS1,VS2,SI1,I1,SI2 +
+#   -0.1295 * clarity=VS1,VS2,SI1,I1,SI2 +
+#   -0.068  * clarity=VS2,SI1,I1,SI2 +
+#   -0.147  * clarity=SI1,I1,SI2 +
+#   -0.5796 * clarity=I1,SI2 +
+#   0.4137 * clarity=SI2 +
+#   0.7578 * x +
+#   0.3535 * y +
+#   0.4756 * z +
+#   0.0099 * table +
+#   0.0359 * depth +
+#   -1.7909
+
+plot(fit_weka)
+
+
+
+
+##################### Weka Try a train and test ##########
+#Train Weka Model on Train data m5 Ridge
+
+fit_weka_train <- LinearRegression(lprice~ carat+cut+color+clarity+x+y+z+table+depth, data=diamonds_train)
+
+summary(fit_weka_train)
+
+# === Summary ===
+#   
+#   Correlation coefficient                  0.9912
+# Mean absolute error                      0.1043
+# Root mean squared error                  0.1346
+# Relative absolute error                 11.8955 %
+# Root relative squared error             13.2536 %
+# Total Number of Instances            37742 
+
+fit_weka_train
+
+# Linear Regression Model
+# 
+# lprice =
+#   
+#   -1.0345 * carat +
+#   -0.0419 * cut=Very Good,Good,Premium,Fair +
+#   -0.0323 * cut=Good,Premium,Fair +
+#   0.0445 * cut=Premium,Fair +
+#   -0.117  * cut=Fair +
+#   0.0556 * color=D,F,G,H,I,J +
+#   -0.0967 * color=F,G,H,I,J +
+#   -0.0644 * color=G,H,I,J +
+#   -0.0961 * color=H,I,J +
+#   -0.1185 * color=I,J +
+#   -0.135  * color=J +
+#   0.0892 * clarity=IF,VVS2,VS1,VS2,SI1,I1,SI2 +
+#   -0.1603 * clarity=VVS2,VS1,VS2,SI1,I1,SI2 +
+#   -0.1286 * clarity=VS1,VS2,SI1,I1,SI2 +
+#   -0.0681 * clarity=VS2,SI1,I1,SI2 +
+#   -0.1471 * clarity=SI1,I1,SI2 +
+#   -0.5761 * clarity=I1,SI2 +
+#   0.4084 * clarity=SI2 +
+#   0.7995 * x +
+#   0.4245 * y +
+#   0.299  * z +
+#   0.0101 * table +
+#   0.0471 * depth +
+#   -2.5034
+
+
+plot(fit_weka_train)
+
+residuals(fit_weka_train) # residuals
+influence(fit_weka_train) # regression diagnostics 
+
+weka_test<-c(diamonds_test,as.numeric(predict(fit_weka_train, data.frame(diamonds_test)), exp(as.numeric(predict(fit_weka_train, data.frame(diamonds_test))))))
+
+summary(weka_test)
+
+# predicted_weka <- as.numeric(predict(fit_weka_train , data.frame(diamonds_test)))
+# 
+# head(predicted_weka)
+# 
+# predicted_weka <- c(predicted_weka,exp(predicted_weka))
+# head(predicted_weka)
+# 
+# print(predicted_weka[1] + exp(predicted_weka[1]))
+# 
+# predicted_weka <- as.numeric(predict(fit_weka_train, data.frame(diamonds_test)))
+# 
+# predicted_weka <- c(predicted_weka,exp(predicted_weka))
+# 
+# 
+# summary(predicted_weka)
+weka_test <- NULL
+
+output_weka <- predict(fit_weka_train, data.frame(diamonds_test))
+summary(output_weka)
+
+weka_output_price <-exp(output_weka)
+head(weka_output_price)
+
+
+plot(as.numeric(weka_output_price),as.numeric(diamonds_test$price))
+
+
+cor(as.numeric(weka_output_price,as.numeric(diamonds_test$price)))
+
+#Check the Correlation between price and predicted price
+cor(weka_output_price,diamonds_test$price)
+
+
+
+
+################## M5
+
+
+
+M5_weka = M5P (lprice~ carat+cut+color+clarity+x+y+z+table+depth, data=diamonds_train, control = Weka_control(N=F, M=10))
+weka_train_predicted = predict(M5_weka, diamonds_train)
+weka_test_predicted = predict(M5_weka, diamonds_test)
+
+
+
+M5_weka_temp <- data.frame(diamonds_test,weka_test_predicted)
+
+head(M5_weka_temp)
+
+M5_weka_temp$weka_test_predicted > 11
+
+M5_weka_temp[M5_weka_temp$weka_test_predicted > 11,]
+
+
+
+
+
+###### Outlier ####
+# > M5_weka_temp[M5_weka_temp$weka_test_predicted > 11,]
+# carat     cut color clarity depth table price    x    y    z  lprice weka_test_predicted
+# 26482  2.06 Premium     H     SI2    60    60 16098 6.29 6.25 4.96 9.68645            11.72547
+
+M5_weka_temp_trimmed<- subset(M5_weka_temp, M5_weka_temp$weka_test_predicted < 11)
+
+M5_weka_temp_trimmed$weka_test_predicted_price<-exp(M5_weka_temp_trimmed$weka_test_predicted )
+
+summary(M5_weka_temp_trimmed)
+
+plot(as.numeric(exp(M5_weka_temp_trimmed$weka_test_predicted),as.numeric(M5_weka_temp_trimmed$price))
+
+
+plot(M5_weka)
+
+WOW(LinearRegression)
+WOW(M5P)
+
+
+residuals(M5_weka) # residuals
+influence(fit) # regression diagnostics 
+
+summary(M5_weka_temp)
+
+summary(weka_test_predicted)
+
+
+
+M5_weka_output_price <-exp(weka_test_predicted)
+head(weka_output_price)
+summary(weka_output_price)
+
+
+plot(as.numeric(M5_weka_output_price),as.numeric(diamonds_test$price))
+
+
+
+
+plot(as.numeric(output_weka),as.numeric(weka_test_predicted))
+
+
+
+
+
+str(predicted_weka)
+
+output_weka_test<-c(weka_test,predicted_weka)
+head(output_weka_test)
+
+
+
+step(lm(diamonds$lprice~ carat+cut+color+clarity+x+y+z+table+depth, data=diamonds), trace = 0)
+
+plot(fit_weka)
+
+
+
+
+
+# Other useful functions
+coefficients(fit) # model coefficients
+confint(fit, level=0.95) # CIs for model parameters
+fitted(fit) # predicted values
+residuals(fit) # residuals
+anova(fit) # anova table
+vcov(fit) # covariance matrix for model parameters
+influence(fit) # regression diagnostics 
 
 ################################## Back to Business #########################################
 
