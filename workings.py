@@ -54,7 +54,7 @@ diamonds['ideal_flag'] = diamonds['cut'].apply(lambda x: 'True' if x == 'Ideal' 
 ### Train/Test split
 
 
-# In[50]:
+# In[2]:
 
 
 
@@ -3338,7 +3338,7 @@ print ('Model formula : lprice ~ carat + cut + clarity + color + x + y + z + dep
 model_output.head()
 
 
-# In[30]:
+# In[39]:
 
 #http://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_and_elasticnet.html#sphx-glr-auto-examples-linear-model-plot-lasso-and-elasticnet-py
 #Working Lasso Example 
@@ -3479,7 +3479,7 @@ print('\n'*1)
 
 alpha = 0.1
 lasso = Lasso(alpha=alpha)
-tag = 'lasso'
+tag = 'lasso alpha = 0.1'
 
 pred_test = lasso.fit(train_X, train_y).predict(test_X)
 predictions = pred_test
@@ -3499,7 +3499,7 @@ print('\n'*1)
 
 alpha = 0.0001
 lasso = Lasso(alpha=alpha)
-tag = 'lasso alpha= 0.0001'
+tag = 'lasso alpha = 0.0001'
 
 pred_test = lasso.fit(train_X, train_y).predict(test_X)
 predictions = pred_test
@@ -3517,9 +3517,9 @@ print('\n'*1)
 
 #Lasso 0.0001
 
-alpha = 0.0004
+alpha = 0.00047
 lasso = Lasso(alpha=alpha)
-tag = 'lasso alpha= 0.0004'
+tag = 'lasso alpha = 0.00047'
 
 pred_test = lasso.fit(train_X, train_y).predict(test_X)
 predictions = pred_test
@@ -3550,11 +3550,45 @@ print('\n'*1)
 #ElasticNet
 alpha = 0.1
 enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
-tag = 'enet'
+tag = 'enet alpha = 0.1'
 
 #y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
 
 pred_test = enet.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_enet = r2_score(test_y, pred_test)
+
+# print(enet)
+# print("r^2 on test data : %f" % r2_score_enet)
+
+model_r2_score = r2_score_enet
+
+model_analysis(enet,tag,model_r2_score)
+
+#ElasticNet
+alpha = 0.0001
+enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
+tag = 'enet alpha = 0.0001'
+
+#y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
+pred_test= enet.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_enet = r2_score(test_y, pred_test)
+
+# print(enet)
+# print("r^2 on test data : %f" % r2_score_enet)
+
+model_r2_score = r2_score_enet
+
+model_analysis(enet,tag,model_r2_score)
+
+#ElasticNet
+alpha = 0.00094
+enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
+tag = 'enet alpha = 0.00094'
+
+#y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
+pred_test= enet.fit(train_X, train_y).predict(test_X)
 predictions = pred_test
 r2_score_enet = r2_score(test_y, pred_test)
 
@@ -3752,7 +3786,7 @@ model_output.head()
 
 
 
-# In[34]:
+# In[38]:
 
 #http://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_and_elasticnet.html#sphx-glr-auto-examples-linear-model-plot-lasso-and-elasticnet-py
 #Working Lasso Example 
@@ -3872,7 +3906,7 @@ print('\n'*1)
 
 alpha = 0.1
 lasso = Lasso(alpha=alpha)
-tag = 'lasso'
+tag = 'lasso alpha = 0.1'
 
 pred_test = lasso.fit(train_X, train_y).predict(test_X)
 predictions = pred_test
@@ -3910,9 +3944,9 @@ print('\n'*1)
 
 #Lasso 0.0004
 
-alpha = 0.0004
+alpha = 0.00047
 lasso = Lasso(alpha=alpha)
-tag = 'lasso alpha= 0.0004'
+tag = 'lasso alpha= 0.00047'
 
 pred_test = lasso.fit(train_X, train_y).predict(test_X)
 predictions = pred_test
@@ -3942,7 +3976,7 @@ print('\n'*1)
 #ElasticNet
 alpha = 0.1
 enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
-tag = 'enet'
+tag = 'enet alpha = 0.1'
 
 #y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
 pred_test= enet.fit(train_X, train_y).predict(test_X)
@@ -3955,6 +3989,41 @@ r2_score_enet = r2_score(test_y, pred_test)
 model_r2_score = r2_score_enet
 
 model_analysis(enet,tag,model_r2_score)
+
+#ElasticNet
+alpha = 0.0001
+enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
+tag = 'enet alpha = 0.0001'
+
+#y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
+pred_test= enet.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_enet = r2_score(test_y, pred_test)
+
+# print(enet)
+# print("r^2 on test data : %f" % r2_score_enet)
+
+model_r2_score = r2_score_enet
+
+model_analysis(enet,tag,model_r2_score)
+
+#ElasticNet
+alpha = 0.00094
+enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
+tag = 'enet alpha = 0.00094'
+
+#y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
+pred_test= enet.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_enet = r2_score(test_y, pred_test)
+
+# print(enet)
+# print("r^2 on test data : %f" % r2_score_enet)
+
+model_r2_score = r2_score_enet
+
+model_analysis(enet,tag,model_r2_score)
+
 
 #Unlike most other scores, R^2 score may be negative (it need not actually be the square of a quantity R).
 
@@ -4000,7 +4069,7 @@ test
 
 # ### Try out Regression with our R training dataset
 
-# In[54]:
+# In[14]:
 
 #Read in our Data
 diamonds_train_R = pd.read_csv("diamonds_train_R.csv") #load the dataset
@@ -4231,7 +4300,7 @@ model_output.head()
 
 
 
-# In[56]:
+# In[37]:
 
 
 
@@ -4360,7 +4429,7 @@ print('\n'*1)
 
 alpha = 0.1
 lasso = Lasso(alpha=alpha)
-tag = 'lasso'
+tag = 'lasso alpha = 0.1'
 
 pred_test = lasso.fit(train_X, train_y).predict(test_X)
 predictions = pred_test
@@ -4398,9 +4467,9 @@ print('\n'*1)
 
 #Lasso 0.0004
 
-alpha = 0.0004
+alpha = 0.00047
 lasso = Lasso(alpha=alpha)
-tag = 'lasso alpha= 0.0004'
+tag = 'lasso alpha= 0.00047'
 
 pred_test = lasso.fit(train_X, train_y).predict(test_X)
 predictions = pred_test
@@ -4430,7 +4499,42 @@ print('\n'*1)
 #ElasticNet
 alpha = 0.1
 enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
-tag = 'enet'
+tag = 'enet alpha = 0.1'
+
+#y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
+pred_test= enet.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_enet = r2_score(test_y, pred_test)
+
+# print(enet)
+# print("r^2 on test data : %f" % r2_score_enet)
+
+model_r2_score = r2_score_enet
+
+model_analysis(enet,tag,model_r2_score)
+
+
+#ElasticNet
+alpha = 0.0001
+enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
+tag = 'enet alpha = 0.0001'
+
+#y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
+pred_test= enet.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_enet = r2_score(test_y, pred_test)
+
+# print(enet)
+# print("r^2 on test data : %f" % r2_score_enet)
+
+model_r2_score = r2_score_enet
+
+model_analysis(enet,tag,model_r2_score)
+
+#ElasticNet
+alpha = 0.00094
+enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
+tag = 'enet alpha = 0.00094'
 
 #y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
 pred_test= enet.fit(train_X, train_y).predict(test_X)
@@ -4640,7 +4744,7 @@ model_output.head()
 
 
 
-# In[57]:
+# In[36]:
 
 
 
@@ -4769,7 +4873,7 @@ print('\n'*1)
 
 alpha = 0.1
 lasso = Lasso(alpha=alpha)
-tag = 'lasso'
+tag = 'lasso alpha = 0.1'
 
 pred_test = lasso.fit(train_X, train_y).predict(test_X)
 predictions = pred_test
@@ -4807,9 +4911,9 @@ print('\n'*1)
 
 #Lasso 0.0004
 
-alpha = 0.0004
+alpha = 0.00047
 lasso = Lasso(alpha=alpha)
-tag = 'lasso alpha= 0.0004'
+tag = 'lasso alpha= 0.00047'
 
 pred_test = lasso.fit(train_X, train_y).predict(test_X)
 predictions = pred_test
@@ -4839,7 +4943,7 @@ print('\n'*1)
 #ElasticNet
 alpha = 0.1
 enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
-tag = 'enet'
+tag = 'enet alpha = 0.1'
 
 #y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
 pred_test= enet.fit(train_X, train_y).predict(test_X)
@@ -4852,6 +4956,42 @@ r2_score_enet = r2_score(test_y, pred_test)
 model_r2_score = r2_score_enet
 
 model_analysis(enet,tag,model_r2_score)
+
+
+#ElasticNet
+alpha = 0.0001
+enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
+tag = 'enet alpha = 0.0001'
+
+#y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
+pred_test= enet.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_enet = r2_score(test_y, pred_test)
+
+# print(enet)
+# print("r^2 on test data : %f" % r2_score_enet)
+
+model_r2_score = r2_score_enet
+
+model_analysis(enet,tag,model_r2_score)
+
+#ElasticNet
+alpha = 0.00094
+enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
+tag = 'enet alpha = 0.00094'
+
+#y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
+pred_test= enet.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_enet = r2_score(test_y, pred_test)
+
+# print(enet)
+# print("r^2 on test data : %f" % r2_score_enet)
+
+model_r2_score = r2_score_enet
+
+model_analysis(enet,tag,model_r2_score)
+
 
 #Unlike most other scores, R^2 score may be negative (it need not actually be the square of a quantity R).
 
@@ -5051,7 +5191,7 @@ print ('Model formula : lprice ~ y + carat + clarity + color + depth + cut + tab
 model_output.head()
 
 
-# In[58]:
+# In[35]:
 
 def model_analysis (model,tag,model_r2_score):
 
@@ -5178,7 +5318,7 @@ print('\n'*1)
 
 alpha = 0.1
 lasso = Lasso(alpha=alpha)
-tag = 'lasso'
+tag = 'lasso alpha = 0.1'
 
 pred_test = lasso.fit(train_X, train_y).predict(test_X)
 predictions = pred_test
@@ -5198,7 +5338,7 @@ print('\n'*1)
 
 alpha = 0.0001
 lasso = Lasso(alpha=alpha)
-tag = 'lasso alpha= 0.0001'
+tag = 'lasso alpha = 0.0001'
 
 pred_test = lasso.fit(train_X, train_y).predict(test_X)
 predictions = pred_test
@@ -5216,9 +5356,9 @@ print('\n'*1)
 
 #Lasso 0.0004
 
-alpha = 0.0004
+alpha = 0.00047
 lasso = Lasso(alpha=alpha)
-tag = 'lasso alpha= 0.0004'
+tag = 'lasso alpha = 0.00047'
 
 pred_test = lasso.fit(train_X, train_y).predict(test_X)
 predictions = pred_test
@@ -5248,7 +5388,7 @@ print('\n'*1)
 #ElasticNet
 alpha = 0.1
 enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
-tag = 'enet'
+tag = 'enet alpha = 0.1'
 
 #y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
 pred_test= enet.fit(train_X, train_y).predict(test_X)
@@ -5262,6 +5402,44 @@ model_r2_score = r2_score_enet
 
 model_analysis(enet,tag,model_r2_score)
 
+
+#ElasticNet
+alpha = 0.0001
+enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
+tag = 'enet alpha = 0.0001'
+
+#y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
+pred_test= enet.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_enet = r2_score(test_y, pred_test)
+
+# print(enet)
+# print("r^2 on test data : %f" % r2_score_enet)
+
+model_r2_score = r2_score_enet
+
+model_analysis(enet,tag,model_r2_score)
+
+#0.00094373230442450738
+
+#ElasticNet
+alpha = 0.00094
+enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
+tag = 'enet alpha = 0.00094'
+
+#y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
+pred_test= enet.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_enet = r2_score(test_y, pred_test)
+
+# print(enet)
+# print("r^2 on test data : %f" % r2_score_enet)
+
+model_r2_score = r2_score_enet
+
+model_analysis(enet,tag,model_r2_score)
+
+
 #Unlike most other scores, R^2 score may be negative (it need not actually be the square of a quantity R).
 
 print('\n'*1)
@@ -5270,6 +5448,11 @@ print ('Model formula : lprice ~ y + carat + clarity + color + depth + cut + tab
 
 
 model_output
+
+
+# In[28]:
+
+round(0.00094373230442450738,5)
 
 
 # In[ ]:
@@ -6266,10 +6449,7 @@ print(lasso_cv.alpha_)
 print("Done")
 
 
-# In[ ]:
-
-Lasso alpha determined by Cross Validation
-
+# ### Lasso alpha determined by Cross Validation
 
 # In[58]:
 
@@ -6284,6 +6464,345 @@ LassoCV(alphas=None, copy_X=True, cv=None, eps=0.001, fit_intercept=True,
     verbose=False)
  # The estimator chose automatically its lambda:
 lasso.alpha_ 
+
+
+# In[34]:
+
+round(0.00047489749072328851,5)
+
+
+# In[ ]:
+
+#Determine Alpha on only 1 of quartet
+
+
+# In[7]:
+
+from sklearn import datasets
+from sklearn.linear_model import LassoCV
+from sklearn.linear_model import Lasso
+from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_score
+
+
+train_X=diamonds_train[['cut','clarity','color','y','depth','table']]# taking the training data features
+train_y=diamonds_train[['lprice']] # output of our training data
+test_X =diamonds_test[['cut','clarity','color','y','depth','table']] # taking test data features
+test_y=diamonds_test[['lprice']]  #output value of test data
+
+
+
+lasso = Lasso(random_state=0)
+alphas = np.logspace(-4, -0.5, 30)
+
+scores = list()
+scores_std = list()
+
+n_folds = 3
+
+for alpha in alphas:
+    lasso.alpha = alpha
+    this_scores = cross_val_score(lasso, train_X, train_y, cv=n_folds, n_jobs=1)
+    scores.append(np.mean(this_scores))
+    scores_std.append(np.std(this_scores))
+
+scores, scores_std = np.array(scores), np.array(scores_std)
+
+plt.figure().set_size_inches(8, 6)
+plt.semilogx(alphas, scores)
+
+# plot error lines showing +/- std. errors of the scores
+std_error = scores_std / np.sqrt(n_folds)
+
+plt.semilogx(alphas, scores + std_error, 'b--')
+plt.semilogx(alphas, scores - std_error, 'b--')
+
+# alpha=0.2 controls the translucency of the fill color
+plt.fill_between(alphas, scores + std_error, scores - std_error, alpha=0.2)
+
+plt.ylabel('CV score +/- std error')
+plt.xlabel('alpha')
+plt.axhline(np.max(scores), linestyle='--', color='.5')
+plt.xlim([alphas[0], alphas[-1]])
+
+plt.show()
+
+
+# Release memory.
+plt.clf()
+plt.close()
+
+
+# LassoCV object that sets its alpha parameter automatically 
+# from the data by internal cross-validation
+# # performs cross-validation on the training data it receives).
+# We use external cross-validation to see how much the automatically obtained
+# alphas differ across different cross-validation folds.
+lasso_cv = LassoCV(alphas=alphas, random_state=0)
+k_fold = KFold(100)
+
+
+X = np.array(train_X)
+y = np.array(train_y)
+
+#Selection of Alpha
+
+for k, (train, test) in enumerate(k_fold.split(X, y)):
+    #print(train,test)
+    lasso_cv.fit(X[train], y[train])
+    print("[fold {0}] alpha: {1:.5f}, score: {2:.5f}".
+          format(k, lasso_cv.alpha_, lasso_cv.score(X[test], y[test])))
+print()
+print("Compare the  alphas obtained for the")
+print("subsets of the data and moreover, and see if the scores differ")
+print("substantially.")
+
+plt.show()
+print(lasso_cv.alpha_)
+print("Done")
+
+
+# ### Lasso alpha determined by Cross Validation
+
+# In[8]:
+
+from sklearn import linear_model, datasets
+
+lasso = linear_model.LassoCV()
+
+lasso.fit(train_X, train_y)
+LassoCV(alphas=None, copy_X=True, cv=None, eps=0.001, fit_intercept=True,
+    max_iter=1000, n_alphas=100, n_jobs=1, normalize=False, positive=False,
+    precompute='auto', random_state=None, selection='cyclic', tol=0.0001,
+    verbose=False)
+ # The estimator chose automatically its lambda:
+lasso.alpha_ 
+
+
+# ### ElaticNet CV alpha
+
+# In[ ]:
+
+#ElasticNet(alpha=alpha, l1_ratio=0.7)
+
+
+# In[11]:
+
+from sklearn import datasets
+from sklearn.linear_model import LassoCV
+from sklearn.linear_model import Lasso
+from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import ElasticNet
+from sklearn.linear_model import ElasticNetCV
+
+train_X=diamonds_train[['cut','clarity','color','y','depth','table']]# taking the training data features
+train_y=diamonds_train[['lprice']] # output of our training data
+test_X =diamonds_test[['cut','clarity','color','y','depth','table']] # taking test data features
+test_y=diamonds_test[['lprice']]  #output value of test data
+
+
+enet = ElasticNet(l1_ratio=0.7)
+#lasso = Lasso(random_state=0)
+alphas = np.logspace(-4, -0.5, 30)
+
+scores = list()
+scores_std = list()
+
+n_folds = 3
+
+for alpha in alphas:
+    enet.alpha = alpha
+    this_scores = cross_val_score(enet, train_X, train_y, cv=n_folds, n_jobs=1)
+    scores.append(np.mean(this_scores))
+    scores_std.append(np.std(this_scores))
+
+scores, scores_std = np.array(scores), np.array(scores_std)
+
+plt.figure().set_size_inches(8, 6)
+plt.semilogx(alphas, scores)
+
+# plot error lines showing +/- std. errors of the scores
+std_error = scores_std / np.sqrt(n_folds)
+
+plt.semilogx(alphas, scores + std_error, 'b--')
+plt.semilogx(alphas, scores - std_error, 'b--')
+
+# alpha=0.2 controls the translucency of the fill color
+plt.fill_between(alphas, scores + std_error, scores - std_error, alpha=0.2)
+
+plt.ylabel('CV score +/- std error')
+plt.xlabel('alpha')
+plt.axhline(np.max(scores), linestyle='--', color='.5')
+plt.xlim([alphas[0], alphas[-1]])
+
+plt.show()
+
+
+# Release memory.
+plt.clf()
+plt.close()
+
+
+# LassoCV object that sets its alpha parameter automatically 
+# from the data by internal cross-validation
+# # performs cross-validation on the training data it receives).
+# We use external cross-validation to see how much the automatically obtained
+# alphas differ across different cross-validation folds.
+enet_cv = ElasticNetCV(alphas=alphas, random_state=0)
+k_fold = KFold(100)
+
+
+X = np.array(train_X)
+y = np.array(train_y)
+
+#Selection of Alpha
+
+for k, (train, test) in enumerate(k_fold.split(X, y)):
+    #print(train,test)
+    enet_cv.fit(X[train], y[train])
+    print("[fold {0}] alpha: {1:.5f}, score: {2:.5f}".
+          format(k, enet_cv.alpha_, enet_cv.score(X[test], y[test])))
+print()
+print("Compare the  alphas obtained for the")
+print("subsets of the data and moreover, and see if the scores differ")
+print("substantially.")
+
+plt.show()
+print(enet_cv.alpha_)
+print("Done")
+
+
+# In[12]:
+
+from sklearn import linear_model, datasets
+
+enet = linear_model.ElasticNetCV()
+
+enet.fit(train_X, train_y)
+ElasticNetCV(alphas=None, copy_X=True, cv=None, eps=0.001, fit_intercept=True,
+    max_iter=1000, n_alphas=100, n_jobs=1, normalize=False, positive=False,
+    precompute='auto', random_state=None, selection='cyclic', tol=0.0001,
+    verbose=False)
+ # The estimator chose automatically its lambda:
+enet.alpha_ 
+
+
+# In[33]:
+
+round(0.00094373230442450738,5)
+
+
+# In[ ]:
+
+#Try the CV using all feature to see if we detect any difference
+
+
+# In[21]:
+
+from sklearn import datasets
+from sklearn.linear_model import LassoCV
+from sklearn.linear_model import Lasso
+from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import ElasticNet
+from sklearn.linear_model import ElasticNetCV
+
+train_X=diamonds_train[['carat','cut','clarity','color','x','y','z','depth','table']]# taking the training data features
+train_y=diamonds_train[['lprice']] # output of our training data
+test_X =diamonds_test[['carat','cut','clarity','color','x','y','z','depth','table']] # taking test data features
+test_y=diamonds_test[['lprice']]  #output value of test data
+
+
+enet = ElasticNet(l1_ratio=0.7)
+#lasso = Lasso(random_state=0)
+alphas = np.logspace(-4, -0.5, 30)
+
+scores = list()
+scores_std = list()
+
+n_folds = 3
+
+for alpha in alphas:
+    enet.alpha = alpha
+    this_scores = cross_val_score(enet, train_X, train_y, cv=n_folds, n_jobs=1)
+    scores.append(np.mean(this_scores))
+    scores_std.append(np.std(this_scores))
+
+scores, scores_std = np.array(scores), np.array(scores_std)
+
+plt.figure().set_size_inches(8, 6)
+plt.semilogx(alphas, scores)
+
+# plot error lines showing +/- std. errors of the scores
+std_error = scores_std / np.sqrt(n_folds)
+
+plt.semilogx(alphas, scores + std_error, 'b--')
+plt.semilogx(alphas, scores - std_error, 'b--')
+
+# alpha=0.2 controls the translucency of the fill color
+plt.fill_between(alphas, scores + std_error, scores - std_error, alpha=0.2)
+
+plt.ylabel('CV score +/- std error')
+plt.xlabel('alpha')
+plt.axhline(np.max(scores), linestyle='--', color='.5')
+plt.xlim([alphas[0], alphas[-1]])
+
+plt.show()
+
+
+# Release memory.
+plt.clf()
+plt.close()
+
+
+# LassoCV object that sets its alpha parameter automatically 
+# from the data by internal cross-validation
+# # performs cross-validation on the training data it receives).
+# We use external cross-validation to see how much the automatically obtained
+# alphas differ across different cross-validation folds.
+enet_cv = ElasticNetCV(alphas=alphas, random_state=0)
+k_fold = KFold(100)
+
+
+X = np.array(train_X)
+y = np.array(train_y)
+
+#Selection of Alpha
+
+for k, (train, test) in enumerate(k_fold.split(X, y)):
+    #print(train,test)
+    enet_cv.fit(X[train], y[train])
+    print("[fold {0}] alpha: {1:.5f}, score: {2:.5f}".
+          format(k, enet_cv.alpha_, enet_cv.score(X[test], y[test])))
+print()
+print("Compare the  alphas obtained for the")
+print("subsets of the data and moreover, and see if the scores differ")
+print("substantially.")
+
+plt.show()
+print(enet_cv.alpha_)
+print("Done")
+
+
+# In[22]:
+
+from sklearn import linear_model, datasets
+
+enet = linear_model.ElasticNetCV()
+
+enet.fit(train_X, train_y)
+ElasticNetCV(alphas=None, copy_X=True, cv=None, eps=0.001, fit_intercept=True,
+    max_iter=1000, n_alphas=100, n_jobs=1, normalize=False, positive=False,
+    precompute='auto', random_state=None, selection='cyclic', tol=0.0001,
+    verbose=False)
+ # The estimator chose automatically its lambda:
+enet.alpha_ 
+
+
+# In[ ]:
+
+
 
 
 # In[197]:
