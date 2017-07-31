@@ -598,7 +598,20 @@ summary(diamonds$color)
 #Try a Vertical box plot - and we naturally get out Order right
 plot_ly(diamonds, y = ~diamonds$price, color = ~diamonds$color, type = "box")
 
+par(mfrow=c(1,3))
 
+#Try a Vertical box plot - and we naturally get out Order right
+
+plot_ly(ggplot2::diamonds, y = ~price, color = ~cut, type = "box")
+
+
+plot_ly(diamonds, y = ~diamonds$price, color = ~diamonds$color, type = "box")
+
+plot_ly(ggplot2::diamonds, y = ~price, color = ~clarity, type = "box")
+
+
+
+par(mfrow=c(1,1))
 
 ################################  What about Cut? ################################ 
 
@@ -694,8 +707,17 @@ plot(diamonds$color)
 
 library(sm)
 
-sm.density.compare(diamonds$price, diamonds$cut, xlab="Price Per Cut")
+sm.density.compare(diamonds$price, diamonds$cut, xlab="Price Distribution by Cut")
 title(main="Price Distribution by Diamond Cut")
+
+sm.density.compare(diamonds$price, diamonds$color, xlab="Price Distribution by Color")
+title(main="Price Distribution by Diamond Color")
+
+sm.density.compare(diamonds$price, diamonds$clarity, xlab="Price Distribution by Clarity")
+title(main="Price Distribution by Diamond Clarity")
+legend = diamonds$clarity
+
+
 
 
 diamonds_temp = aov(price ~ color, data=diamonds)
@@ -1820,7 +1842,7 @@ summary(fit_mcol)
 
 
 ##################################### Show eviednce of effect of multicollinearity #############
-
+den
 #Just y
 fit_mcol<-lm(lprice~y ,data=diamonds_train)
 summary(fit_mcol)
@@ -2035,8 +2057,583 @@ anova(fit_mcol_yxz,fit_mcol_noxz)
 dev.off()
 
 
+### Here's our chosen Model
+fit_mcol_noxzcarat<-lm(lprice~ cut+color+clarity+y+table+depth,data=diamonds_train)
+summary(fit_mcol_noxzcarat)
+
+# > summary(fit_mcol_noxzcarat)
+# 
+# Call:
+#   lm(formula = lprice ~ cut + color + clarity + y + table + depth, 
+#      data = diamonds_train)
+# 
+# Residuals:
+#   Min       1Q   Median       3Q      Max 
+# -1.53870 -0.10710  0.01364  0.11152  2.33030 
+# 
+# Coefficients:
+#   Estimate Std. Error  t value Pr(>|t|)    
+# (Intercept)  -1.8623378  0.0653260  -28.508  < 2e-16 ***
+#   cutGood       0.0246657  0.0059669    4.134 3.58e-05 ***
+#   cutIdeal      0.1012057  0.0059339   17.055  < 2e-16 ***
+#   cutPremium    0.0868258  0.0057321   15.147  < 2e-16 ***
+#   cutVery Good  0.0438616  0.0057175    7.671 1.74e-14 ***
+#   colorE       -0.0564595  0.0031774  -17.769  < 2e-16 ***
+#   colorF       -0.0901799  0.0032237  -27.974  < 2e-16 ***
+#   colorG       -0.1598901  0.0031460  -50.823  < 2e-16 ***
+#   colorH       -0.2711899  0.0033437  -81.105  < 2e-16 ***
+#   colorI       -0.4101585  0.0037385 -109.711  < 2e-16 ***
+#   colorJ       -0.5565355  0.0046213 -120.428  < 2e-16 ***
+#   clarityIF     1.0593731  0.0091124  116.256  < 2e-16 ***
+#   claritySI1    0.6084286  0.0077772   78.233  < 2e-16 ***
+#   claritySI2    0.4268863  0.0078271   54.539  < 2e-16 ***
+#   clarityVS1    0.8110298  0.0079419  102.121  < 2e-16 ***
+#   clarityVS2    0.7431211  0.0078202   95.025  < 2e-16 ***
+#   clarityVVS1   0.9766072  0.0084047  116.198  < 2e-16 ***
+#   clarityVVS2   0.9186482  0.0081838  112.251  < 2e-16 ***
+#   y             0.9829696  0.0008907 1103.544  < 2e-16 ***
+#   table         0.0089272  0.0005184   17.219  < 2e-16 ***
+#   depth         0.0469237  0.0007120   65.900  < 2e-16 ***
+#   ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+# 
+# Residual standard error: 0.1676 on 37721 degrees of freedom
+# Multiple R-squared:  0.9728,	Adjusted R-squared:  0.9728 
+# F-statistic: 6.74e+04 on 20 and 37721 DF,  p-value: < 2.2e-16
 
 
+plot(fit_mcol_noxzcarat)
+
+
+######################## y-Model Residuals #####################
+hist(residuals(fit_mcol_noxzcarat),
+     col="darkgray")
+
+
+
+#### Here's our Alternative using Carat not y
+
+fit_mcol_noyxz<-lm(lprice~ carat+cut+color+clarity+table+depth,data=diamonds_train)
+summary(fit_mcol_noyxz)
+
+# > summary(fit_mcol_noyxz)
+# 
+# Call:
+#   lm(formula = lprice ~ carat + cut + color + clarity + table + 
+#        depth, data = diamonds_train)
+# 
+# Residuals:
+#   Min      1Q  Median      3Q     Max 
+# -4.2569 -0.2154  0.0574  0.2470  1.5719 
+# 
+# Coefficients:
+#   Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)   4.9755746  0.1304796  38.133  < 2e-16 ***
+#   carat         2.2087259  0.0042054 525.215  < 2e-16 ***
+#   cutGood       0.0389276  0.0119406   3.260  0.00111 ** 
+#   cutIdeal      0.0966802  0.0118738   8.142 4.00e-16 ***
+#   cutPremium    0.0489373  0.0114695   4.267 1.99e-05 ***
+#   cutVery Good  0.0536950  0.0114410   4.693 2.70e-06 ***
+#   colorE       -0.0553552  0.0063579  -8.706  < 2e-16 ***
+#   colorF       -0.0564982  0.0064475  -8.763  < 2e-16 ***
+#   colorG       -0.1286418  0.0062926 -20.443  < 2e-16 ***
+#   colorH       -0.2658946  0.0066978 -39.699  < 2e-16 ***
+#   colorI       -0.4238980  0.0075024 -56.502  < 2e-16 ***
+#   colorJ       -0.5794689  0.0092773 -62.461  < 2e-16 ***
+#   clarityIF     0.9867525  0.0182338  54.117  < 2e-16 ***
+#   claritySI1    0.6895006  0.0155795  44.257  < 2e-16 ***
+#   claritySI2    0.5016166  0.0156658  32.020  < 2e-16 ***
+#   clarityVS1    0.8484362  0.0159105  53.326  < 2e-16 ***
+#   clarityVS2    0.7829580  0.0156642  49.984  < 2e-16 ***
+#   clarityVVS1   0.9064269  0.0168182  53.896  < 2e-16 ***
+#   clarityVVS2   0.8970538  0.0163855  54.747  < 2e-16 ***
+#   table         0.0068935  0.0010382   6.640 3.18e-11 ***
+#   depth         0.0001535  0.0014247   0.108  0.91418    
+# ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+# 
+# Residual standard error: 0.3353 on 37721 degrees of freedom
+# Multiple R-squared:  0.891,	Adjusted R-squared:  0.891 
+# F-statistic: 1.542e+04 on 20 and 37721 DF,  p-value: < 2.2e-16
+
+#Carat
+plot(fit_mcol_noyxz)
+
+#Carat Residuals
+hist(residuals(fit_mcol_noyxz),
+     col="darkgray")
+
+######################### plot fot y and carat Models write to pdf ####################
+pdf("fit_mcol_comparison_carat_y.pdf")
+#Carat Model
+summary(fit_mcol_noyxz)
+plot(fit_mcol_noyxz)
+
+summary(fit_mcol_noxzcarat)
+plot(fit_mcol_noxzcarat)
+dev.off()
+################################### Lets Compare AOV y-Model and our carat-Model ##########
+
+anova(fit_mcol_noyxz,fit_mcol_noxzcarat)
+
+anova(fit_mcol_noyxz,fit_mcol_noxzcarat)
+# Analysis of Variance Table
+
+# Model 1: lprice ~ carat + cut + color + clarity + table + depth
+# Model 2: lprice ~ cut + color + clarity + y + table + depth
+# Res.Df    RSS Df Sum of Sq F Pr(>F)
+# 1  37721 4240.2                      
+# 2  37721 1059.0  0    3181.2    
+
+#carat
+fit_aov_carat <- aov(lprice~ carat+cut+color+clarity+table+depth,data=diamonds_train)
+summary(fit_aov_carat)
+
+# > summary(fit_aov_carat)
+# Df Sum Sq Mean Sq   F value   Pr(>F)    
+# carat           1  33047   33047 2.940e+05  < 2e-16 ***
+#   cut             4     71      18 1.588e+02  < 2e-16 ***
+#   color           6    728     121 1.080e+03  < 2e-16 ***
+#   clarity         7    813     116 1.033e+03  < 2e-16 ***
+#   table           1      6       6 5.239e+01 4.64e-13 ***
+#   depth           1      0       0 1.200e-02    0.914    
+# Residuals   37721   4240       0                       
+# ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+# 
+
+
+#y
+fit_aov_y <- aov(lprice~ y+cut+color+clarity+table+depth,data=diamonds_train)
+summary(fit_aov_y)
+
+# > summary(fit_aov_y)
+# Df Sum Sq Mean Sq   F value Pr(>F)    
+# y               1  35995   35995 1282130.6 <2e-16 ***
+#   cut             4     52      13     463.4 <2e-16 ***
+#   color           6    587      98    3482.6 <2e-16 ***
+#   clarity         7   1087     155    5532.9 <2e-16 ***
+#   table           1      3       3     109.9 <2e-16 ***
+#   depth           1    122     122    4342.8 <2e-16 ***
+#   Residuals   37721   1059       0                     
+# ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+# > 
+# 
+
+#y
+
+TukeyHSD(fit_aov_y) # where fit comes from aov()
+
+
+
+##################### prediction of lprice carat v y ################
+
+
+#Carat 
+predicted_using_carat <- as.numeric(predict(fit_mcol_noyxz, data.frame(diamonds_test)))
+
+#y 
+predicted_using_y <- as.numeric(predict(fit_mcol_noxzcarat, data.frame(diamonds_test)))
+
+head(predicted_using_carat)
+
+head(predicted_using_y)
+
+plot(predicted_using_carat)
+
+plot(as.numeric(predicted_using_carat),as.numeric(diamonds_test$lprice))
+
+plot(as.numeric(diamonds_test$lprice),as.numeric(predicted_using_carat))
+
+
+
+head(predicted_using_carat)
+str(predicted_using_carat)
+
+plot(predicted_using_y)
+
+
+
+head(predicted_using_y)
+
+plot(as.numeric(predicted_using_y),as.numeric(diamonds_test$lprice))
+
+plot(as.numeric(diamonds_test$lprice),as.numeric(predicted_using_y))
+
+head(lprice_predicted_using_carat)
+
+#### add predicted_price
+
+lprice_predicted_using_y <- NULL
+lprice_predicted_using_carat <- NULL
+
+#Carat 
+lprice_pred_using_carat<-NULL
+lprice_pred_using_carat <- as.numeric(predict(fit_mcol_noyxz, data.frame(diamonds_test)))
+
+#y 
+lprice_pred_using_y<-NULL
+lprice_pred_using_y <- as.numeric(predict(fit_mcol_noxzcarat, data.frame(diamonds_test)))
+
+#Carat 
+
+lprice_pred_using_carat= as.data.frame(lprice_pred_using_carat)
+head(lprice_pred_using_carat)
+
+#y
+
+lprice_pred_using_y= as.data.frame(lprice_pred_using_y)
+head(lprice_pred_using_y)
+
+
+####Tukey HSD lprice carat vs y ####
+
+# TukeyHSD(lprice_pred_using_carat, lprice_pred_using_y)
+# 
+# TukeyHSD(lprice_pred_using_carat, "carat", ordered = TRUE)
+# 
+# exp(predicted_using_carat)
+#################################################################################################
+
+
+########################### y - Model Booststrap  #############
+
+#http://machinelearningmastery.com/how-to-estimate-model-accuracy-in-r-using-the-caret-package/
+
+#Booststrap - resample the  dataset with resampling against which to
+#evaluate the model
+library(caret)
+# load the iris dataset
+#data(diamonds_train)
+# define training control
+train_control <- trainControl(method="boot", number=100)
+# train the model
+model <- train(lprice~ cut+color+clarity+y+table+depth, data=diamonds_train, trControl=train_control, method="lm")
+# summarize results
+print(model)
+
+# Linear Regression 
+# 
+# 37742 samples
+# 6 predictor
+# 
+# No pre-processing
+# Resampling: Bootstrapped (100 reps) 
+# Summary of sample sizes: 37742, 37742, 37742, 37742, 37742, 37742, ... 
+# Resampling results:
+#   
+#   RMSE       Rsquared 
+# 0.1678388  0.9726902
+# 
+# Tuning parameter 'intercept' was held constant at a value of TRUE
+# 
+
+summary(model)
+# > summary(model)
+# 
+# Call:
+#   lm(formula = .outcome ~ ., data = dat)
+# 
+# Residuals:
+#   Min       1Q   Median       3Q      Max 
+# -1.53870 -0.10710  0.01364  0.11152  2.33030 
+# 
+# Coefficients:
+#   Estimate Std. Error  t value Pr(>|t|)    
+# (Intercept)    -1.8623378  0.0653260  -28.508  < 2e-16 ***
+#   cutGood         0.0246657  0.0059669    4.134 3.58e-05 ***
+#   cutIdeal        0.1012057  0.0059339   17.055  < 2e-16 ***
+#   cutPremium      0.0868258  0.0057321   15.147  < 2e-16 ***
+#   `cutVery Good`  0.0438616  0.0057175    7.671 1.74e-14 ***
+#   colorE         -0.0564595  0.0031774  -17.769  < 2e-16 ***
+#   colorF         -0.0901799  0.0032237  -27.974  < 2e-16 ***
+#   colorG         -0.1598901  0.0031460  -50.823  < 2e-16 ***
+#   colorH         -0.2711899  0.0033437  -81.105  < 2e-16 ***
+#   colorI         -0.4101585  0.0037385 -109.711  < 2e-16 ***
+#   colorJ         -0.5565355  0.0046213 -120.428  < 2e-16 ***
+#   clarityIF       1.0593731  0.0091124  116.256  < 2e-16 ***
+#   claritySI1      0.6084286  0.0077772   78.233  < 2e-16 ***
+#   claritySI2      0.4268863  0.0078271   54.539  < 2e-16 ***
+#   clarityVS1      0.8110298  0.0079419  102.121  < 2e-16 ***
+#   clarityVS2      0.7431211  0.0078202   95.025  < 2e-16 ***
+#   clarityVVS1     0.9766072  0.0084047  116.198  < 2e-16 ***
+#   clarityVVS2     0.9186482  0.0081838  112.251  < 2e-16 ***
+#   y               0.9829696  0.0008907 1103.544  < 2e-16 ***
+#   table           0.0089272  0.0005184   17.219  < 2e-16 ***
+#   depth           0.0469237  0.0007120   65.900  < 2e-16 ***
+#   ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+# 
+# Residual standard error: 0.1676 on 37721 degrees of freedom
+# Multiple R-squared:  0.9728,	Adjusted R-squared:  0.9728 
+# F-statistic: 6.74e+04 on 20 and 37721 DF,  p-value: < 2.2e-16
+
+plot(model)
+
+# Other useful functions
+
+fitted(model) # predicted values
+residuals(model) # residuals
+
+plot(fitted(model),residuals(model))
+
+###########################  y-Model kfold 10 folds  ################
+# load the library
+library(caret)
+
+# define training control
+train_control <- trainControl(method="cv", number=10)
+# fix the parameters of the algorithm
+grid <- expand.grid(.fL=c(0), .usekernel=c(FALSE))
+# train the model
+model <- train(lprice~ cut+color+clarity+y+table+depth, data=diamonds_train, trControl=train_control, method="lm", tuneGrid=grid)
+#model <- train(lprice~ cut+color+clarity+y+table+depth, data=diamonds_train, trControl=train_control, method="lm")
+
+
+# summarize results
+print(model)
+
+
+plot(model)
+
+# Other useful functions
+
+fitted(model) # predicted values
+residuals(model) # residuals
+
+plot(fitted(model),residuals(model))
+
+################## y-Model Repeated K-fold  #######
+
+#10-fold with 3 repeats
+#Data is split into K-fold a number of times: the finalModel accuracy is a mean
+#from the repeats
+
+# load the library
+library(caret)
+
+# define training control
+train_control <- trainControl(method="repeatedcv", number=10, repeats=3)
+# train the model
+model <- train(lprice~ cut+color+clarity+y+table+depth, data=diamonds_train, trControl=train_control, method="lm")
+# summarize results
+print(model)
+
+
+# Linear Regression 
+# 
+# 37742 samples
+# 6 predictor
+# 
+# No pre-processing
+# Resampling: Cross-Validated (10 fold, repeated 3 times) 
+# Summary of sample sizes: 33968, 33969, 33966, 33966, 33968, 33967, ... 
+# Resampling results:
+#   
+#   RMSE       Rsquared 
+# 0.1676028  0.9727535
+
+# Tuning parameter 'intercept' was held constant at a value of TRUE
+
+
+# Other useful functions
+
+fitted(model) # predicted values
+residuals(model) # residuals
+
+plot(fitted(model),residuals(model))
+
+######################################## y- Model Leave One Out ##########
+
+##Leave One oUt Cross validation - a data instance is left out and 
+#model construct using all other all other data 
+# load the library
+library(caret)
+
+# define training control
+train_control <- trainControl(method="LOOCV")
+# train the model
+model <- train(lprice~ cut+color+clarity+y+table+depth, data=diamonds_train, trControl=train_control, method="lm")
+
+# summarize results
+print(model)
+
+
+# Linear Regression 
+# 
+# 37742 samples
+# 6 predictor
+# 
+# No pre-processing
+# Resampling: Cross-Validated (10 fold, repeated 3 times) 
+# Summary of sample sizes: 33968, 33969, 33966, 33966, 33968, 33967, ... 
+# Resampling results:
+#   
+#   RMSE       Rsquared 
+# 0.1676028  0.9727535
+# 
+# Tuning parameter 'intercept' was held constant at a value of TRUE
+
+
+
+warnings()
+
+
+# Other useful functions
+
+fitted(model) # predicted values
+residuals(model) # residuals
+
+plot(fitted(model),residuals(model))
+
+############################## ElasticNet  Ridge ################################
+pdf("bootstrap_y_Model_enet_lasso_ridge.pdf")
+
+#Elastic Net
+#Booststrap - resample the  dataset with resampling against which to
+#evaluate the model
+library(caret)
+# load the iris dataset
+#data(diamonds_train)
+# define training control
+train_control <- trainControl(method="boot", number=100)
+# train the model
+model <- train(lprice~ cut+color+clarity+y+table+depth, data=diamonds_train, trControl=train_control, method="enet")
+# summarize results
+print(model)
+
+# Elasticnet 
+# 
+# 37742 samples
+# 6 predictor
+# 
+# No pre-processing
+# Resampling: Bootstrapped (100 reps) 
+# Summary of sample sizes: 37742, 37742, 37742, 37742, 37742, 37742, ... 
+# Resampling results across tuning parameters:
+#   
+#   lambda  fraction  RMSE       Rsquared 
+# 0e+00   0.050     0.8490730  0.9252146
+# 0e+00   0.525     0.1858116  0.9666047
+# 0e+00   1.000     0.1674474  0.9727975
+# 1e-04   0.050     0.8495801  0.9252146
+# 1e-04   0.525     0.1859784  0.9665479
+# 1e-04   1.000     0.1674477  0.9727974
+# 1e-01   0.050     0.9312960  0.9252146
+# 1e-01   0.525     0.2835081  0.9253306
+# 1e-01   1.000     0.1925658  0.9642571
+# 
+# RMSE was used to select the optimal model using  the smallest value.
+# The final values used for the model were fraction = 1 and lambda = 0.
+
+
+
+
+plot(model)
+
+#Elastic Net
+#Booststrap - resample the  dataset with resampling against which to
+#evaluate the model
+library(caret)
+# load the iris dataset
+#data(diamonds_train)
+# define training control
+train_control <- trainControl(method="boot", number=100)
+# train the model
+model <- train(lprice~ cut+color+clarity+y+table+depth, data=diamonds_train, trControl=train_control, method="lasso")
+# summarize results
+print(model)
+
+# The lasso 
+# 
+# 37742 samples
+# 6 predictor
+# 
+# No pre-processing
+# Resampling: Bootstrapped (100 reps) 
+# Summary of sample sizes: 37742, 37742, 37742, 37742, 37742, 37742, ... 
+# Resampling results across tuning parameters:
+#   
+#   fraction  RMSE       Rsquared 
+# 0.1       0.6871401  0.9252018
+# 0.5       0.1889499  0.9655583
+# 0.9       0.1682423  0.9725589
+# 
+# RMSE was used to select the optimal model using  the smallest value.
+# The final value used for the model was fraction = 0.9.
+
+plot(model)
+
+
+#Booststrap - resample the  dataset with resampling against which to
+#evaluate the model
+library(caret)
+# load the iris dataset
+#data(diamonds_train)
+# define training control
+train_control <- trainControl(method="boot", number=100)
+# train the model
+model <- train(lprice~ cut+color+clarity+y+table+depth, data=diamonds_train, trControl=train_control, method="ridge")
+# summarize results
+print(model)
+
+# Ridge Regression 
+# 
+# 37742 samples
+# 6 predictor
+# 
+# No pre-processing
+# Resampling: Bootstrapped (100 reps) 
+# Summary of sample sizes: 37742, 37742, 37742, 37742, 37742, 37742, ... 
+# Resampling results across tuning parameters:
+#   
+#   lambda  RMSE       Rsquared 
+# 0e+00   0.1678388  0.9726902
+# 1e-04   0.1678385  0.9726903
+# 1e-01   0.1928130  0.9641910
+# 
+# RMSE was used to select the optimal model using  the smallest value.
+# The final value used for the model was lambda = 1e-04. 
+
+plot(fitted(model),residuals(model))
+
+plot(model)
+
+#Booststrap - resample the  dataset with resampling against which to
+#evaluate the model
+library(caret)
+# load the iris dataset
+#data(diamonds_train)
+# define training control
+train_control <- trainControl(method="boot", number=100)
+# train the model
+model <- train(lprice~ cut+color+clarity+y+table+depth, data=diamonds_train, trControl=train_control, method="lasso")
+# summarize results
+print(model)
+
+# The lasso 
+# 
+# 37742 samples
+# 6 predictor
+# 
+# No pre-processing
+# Resampling: Bootstrapped (100 reps) 
+# Summary of sample sizes: 37742, 37742, 37742, 37742, 37742, 37742, ... 
+# Resampling results across tuning parameters:
+#   
+#   fraction  RMSE       Rsquared 
+# 0.1       0.6865942  0.9251503
+# 0.5       0.1887719  0.9655944
+# 0.9       0.1681455  0.9725675
+# 
+# RMSE was used to select the optimal model using  the smallest value.
+# The final value used for the model was fraction = 0.9. 
+
+
+plot(model)
+
+dev.off()
 
 
 ###################################### Ridge also deal with collinear predictors ###########
@@ -2151,10 +2748,103 @@ summary(mod_ridge);
 # Degrees of freedom: model 20.86 , variance 20.72 , residual 20.99 
 
 
+#Drop x, z, carat
+diamond_ridge_sample <- sample_n(diamonds_train, 10000)
+mod_ridge<-ridge::linearRidge(lprice~ cut+color+clarity+y+table+depth, data=diamond_ridge_sample,lambda="automatic"); 
+summary(mod_ridge);
+
+# > summary(mod_ridge);
+# 
+# Call:
+#   ridge::linearRidge(formula = lprice ~ cut + color + clarity + 
+#                        y + table + depth, data = diamond_ridge_sample, lambda = "automatic")
+# 
+# 
+# Coefficients:
+#   Estimate Scaled estimate Std. Error (scaled) t value (scaled) Pr(>|t|)    
+# (Intercept)   -1.662802              NA                  NA               NA       NA    
+# cutGood        0.008748        0.250851            0.319512            0.785   0.4324    
+# cutIdeal       0.085802        4.206703            0.537397            7.828 4.88e-15 ***
+#   cutPremium     0.070383        3.050931            0.461302            6.614 3.75e-11 ***
+#   cutVery Good   0.027078        1.135669            0.444111            2.557   0.0106 *  
+#   colorE        -0.053450       -2.046343            0.235711            8.682  < 2e-16 ***
+#   colorF        -0.081132       -3.064569            0.235235           13.028  < 2e-16 ***
+#   colorG        -0.153409       -6.220975            0.246353           25.252  < 2e-16 ***
+#   colorH        -0.266125       -9.719123            0.233798           41.571  < 2e-16 ***
+#   colorI        -0.394833      -12.068049            0.218477           55.237  < 2e-16 ***
+#   colorJ        -0.538479      -12.127975            0.199584           60.766  < 2e-16 ***
+#   clarityIF      0.986487       17.518749            0.281844           62.158  < 2e-16 ***
+#   claritySI1     0.540555       23.125568            0.557075           41.512  < 2e-16 ***
+#   claritySI2     0.354330       13.420776            0.498071           26.945  < 2e-16 ***
+#   clarityVS1     0.735698       26.139202            0.475064           55.022  < 2e-16 ***
+#   clarityVS2     0.666615       27.810287            0.546869           50.854  < 2e-16 ***
+#   clarityVVS1    0.898216       22.947963            0.365762           62.740  < 2e-16 ***
+#   clarityVVS2    0.844908       24.855447            0.407159           61.046  < 2e-16 ***
+#   y              0.977634      108.983674            0.191784          568.262  < 2e-16 ***
+#   table          0.009521        2.105930            0.222446            9.467  < 2e-16 ***
+#   depth          0.044916        6.446534            0.197330           32.669  < 2e-16 ***
+#   ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+# 
+# Ridge parameter: 0.00245314, chosen automatically, computed using 15 PCs
+# 
+# Degrees of freedom: model 19.74 , variance 19.51 , residual 19.98 
+
+############################ glmnet ###################################
+
+#https://www.r-bloggers.com/how-and-when-ridge-regression-with-glmnet/
+
+install.packages("glmnet")
+library ("glmnet")
+
+diamond_ridge_sample <- sample_n(diamonds_train, 10000)
+
+glm_ridge_y <- diamond_ridge_sample$lprice
+glm_ridge_x <- diamond_ridge_sample %>% select(cut,color,clarity,y,table,depth) %>% data.matrix()
+
+glm_ridge_subset <- (diamond_ridge_sample[c(cut,color,clarity,y,table,depth)]) 
+
+head(diamond_ridge_sample[c(cut,color,clarity,y,table,depth)])
+
+
+glm_ridge_subset <- (diamond_ridge_sample[c('cut','color','clarity','y','table','depth')]) 
+
+glm_ridge_x <- data.matrix(glm_ridge_subset)
+
+
+head(glm_ridge_x)
+
+lambdas <- 10^seq(3, -2, by = -.1)
+lambdas <- 10^ seq (10,-2, length =100)
+
+mod_glm_ridge<- glmnet(glm_ridge_x,glm_ridge_y,alpha = 0, lambda = lambdas); 
+summary(mod_glm_ridge);
+
+#Use Cross validation to get optinal lambda
+#fit <- glmnet(x, y, alpha = 0, lambda = lambdas)
+cv_glm_fit <- cv.glmnet(glm_ridge_x,glm_ridge_y, alpha = 0, lambda = lambdas)
+
+plot(cv_glm_fit)
+
+#Get minimum value
+opt_glm_lambda <- cv_glm_fit$lambda.min
+opt_glm_lambda
 
 
 
+glm_optimised_fit <- cv_glm_fit$glmnet.fit
+summary(glm_optimised_fit)
 
+#Predict Train data
+
+y_glm_predicted <- predict(glm_optimised_fit, s = opt_glm_lambda, newx = glm_ridge_x)
+
+# Sum of Squares Total and Error
+sst_glm <- sum(glm_ridge_y^2)
+sse_glm <- sum((y_glm_predicted - y)^2)
+
+rsq_glm <- 1 - sse_glm  / sst_glm 
+rsq_glm 
 
 
 ################################ Weka ###################################
@@ -2414,9 +3104,10 @@ head(output_weka_test)
 step(lm(diamonds$lprice~ carat+cut+color+clarity+x+y+z+table+depth, data=diamonds), trace = 0)
 
 plot(fit_weka)
+############################## M5 Weka on y and Carat Models ##########
 
 
-
+########################################################################
 
 
 # Other useful functions
@@ -2779,6 +3470,35 @@ rsq.rpart(fit) # visualize cross-validation results
 plot(fit, uniform=TRUE,
      main="Regression Tree for LPrice ")
 text(fit, use.n=TRUE, all=TRUE, cex=.8)
+
+
+####################################### Decision Tree ########################
+
+library('caret')
+library('rpart')
+formula <- as.formula(ideal_flag~lprice+carat+cut+color+clarity+x+y+z+table+depth)
+formula <- as.formula(ideal_flag~lprice+carat+color+clarity+x+y+z+table+depth)
+t <- train(formula,diamonds,method = "rpart",cp=0.002,maxdepth=8)
+
+pdf("decistion_tree_ideal_flag.pdf")
+plot(t)
+
+plot(t$finalModel)
+text(t$finalModel)
+
+install.packages('rattle')
+library(ggplot2)
+library(rattle)
+library(rpart)
+fancyRpartPlot(t$finalModel)
+
+plot(t$finalModel)
+
+dev.off()
+
+
+
+
 
 
 
@@ -3148,9 +3868,18 @@ plot(nn)
 
 ################################################## Write data after munging ##################
 
+
 write.csv(diamonds, file = "diamonds_munged.csv")
+
 write.csv(train_diamond, file = "diamonds_train.csv")
+
 write.csv(test_diamond, file = "diamonds_test.csv")
+
+
+################################################## Write data for Python comparison after munging ##################
+
+write.csv(train_diamond, file = "diamonds_train_R.csv")
+write.csv(test_diamond, file = "diamonds_test_R.csv")
 
 
 ################################################## Redundant Code ##################
