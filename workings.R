@@ -2854,7 +2854,7 @@ if(Sys.getenv("JAVA_HOME")!=""){
   Sys.setenv(JAVA_HOME="")
 }
 
-
+Sys.getenv()
 
 #print(Sys.setenv(R_TEST = "testit", "A+C" = 123))  # `A+C` could also be used
 #Sys.getenv("R_TEST")
@@ -3045,7 +3045,31 @@ M5_weka_temp$weka_test_predicted > 11
 
 M5_weka_temp[M5_weka_temp$weka_test_predicted > 11,]
 
+################## y-Model #############
+library("partykit")
+M5_weka_y = M5P (lprice~ cut+color+clarity+y+table+depth, data=diamonds_train, control = Weka_control(N=F, M=10))
+y_weka_train_predicted = predict(M5_weka_y, diamonds_train)
+y_weka_test_predicted = predict(M5_weka_y, diamonds_test)
 
+plot(M5_weka_y)
+
+y_M5_weka_temp <- data.frame(diamonds_test,y_weka_test_predicted)
+
+head(y_M5_weka_temp)
+
+
+plot(as.numeric(y_M5_weka_temp$lprice),as.numeric(y_M5_weka_temp$y_weka_test_predicted))
+
+#Try the exp 
+y_M5_weka_temp$y_predicted_price<- exp(y_M5_weka_temp$y_weka_test_predicted)
+
+
+plot(as.numeric(y_M5_weka_temp$price),as.numeric(y_M5_weka_temp$y_predicted_price))
+
+
+###### y-Model plot M5 ####
+
+plot(as.numeric(y_M5_weka_temp$y_predicted_price),as.numeric(y_M5_weka_temp$price))
 
 
 
@@ -3081,8 +3105,8 @@ summary(weka_test_predicted)
 M5_weka_output_price <-exp(weka_test_predicted)
 head(weka_output_price)
 summary(weka_output_price)
-
-
+quantile(weka_output_price, c(.90,.95,.99))
+quantile(weka_output_price, c(.99,.995,.999))
 plot(as.numeric(M5_weka_output_price),as.numeric(diamonds_test$price))
 
 
@@ -3418,14 +3442,79 @@ text(fit, use.n=TRUE, all=TRUE, cex=.8)
 
 
 
-#y is the key to branching
+###### Regression Tree Use price  ############
+# Regression Tree Example
+library(rpart)
+
+# grow tree
+
+fit<-rpart(diamonds$price~carat+cut+color+clarity+x+y+z+table+depth,method="anova",data=diamonds)
+
+
+printcp(fit) # display the results
+plotcp(fit) # visualize cross-validation results
+summary(fit) # detailed summary of splits
+
+# create additional plots
+par(mfrow=c(1,1)) # two plots on one page
+rsq.rpart(fit) # visualize cross-validation results  
+
+# plot tree
+plot(fit, uniform=TRUE,
+     main="Regression Tree for price ")
+#text(fit, use.n=TRUE, all=TRUE, cex=.8)
+
+text(fit, use.n=TRUE, all=TRUE, cex=.6)
 
 
 
+###### Regression Tree Use price y-Model  ############
+# Regression Tree Example
+library(rpart)
+
+# grow tree
+
+fit<-rpart(diamonds$price~cut+color+clarity+y+table+depth,method="anova",data=diamonds)
 
 
+printcp(fit) # display the results
+plotcp(fit) # visualize cross-validation results
+summary(fit) # detailed summary of splits
+
+# create additional plots
+par(mfrow=c(1,1)) # two plots on one page
+rsq.rpart(fit) # visualize cross-validation results  
+
+# plot tree
+plot(fit, uniform=TRUE,
+     main="Regression Tree for price ")
+#text(fit, use.n=TRUE, all=TRUE, cex=.8)
+
+text(fit, use.n=TRUE, all=TRUE, cex=.8)
+
+###### Regression Tree Use lprice y-Model  ############
+# Regression Tree Example
+library(rpart)
+
+# grow tree
+
+fit<-rpart(diamonds$lprice~cut+color+clarity+y+table+depth,method="anova",data=diamonds)
 
 
+printcp(fit) # display the results
+plotcp(fit) # visualize cross-validation results
+summary(fit) # detailed summary of splits
+
+# create additional plots
+par(mfrow=c(1,1)) # two plots on one page
+rsq.rpart(fit) # visualize cross-validation results  
+
+# plot tree
+plot(fit, uniform=TRUE,
+     main="Regression Tree for lprice ")
+#text(fit, use.n=TRUE, all=TRUE, cex=.8)
+
+text(fit, use.n=TRUE, all=TRUE, cex=.7)
 
 
 ####################################Classification Models#######################################
@@ -3472,7 +3561,7 @@ plot(fit, uniform=TRUE,
 text(fit, use.n=TRUE, all=TRUE, cex=.8)
 
 
-####################################### Decision Tree ########################
+####################################### Decision Tree rpart caret ########################
 
 library('caret')
 library('rpart')
@@ -3485,7 +3574,7 @@ plot(t)
 
 plot(t$finalModel)
 text(t$finalModel)
-
+library(RGtk2)
 install.packages('rattle')
 library(ggplot2)
 library(rattle)
@@ -3495,12 +3584,69 @@ fancyRpartPlot(t$finalModel)
 plot(t$finalModel)
 
 dev.off()
+R.Version()
+
+################## ideal_flag all predictors #############
+library('caret')
+library('rpart')
+#fit<-rpart(diamonds$ideal_flag~lprice+carat+cut+color+clarity+x+y+z+table+depth,method="anova",data=diamonds)
+
+formula <- as.formula(ideal_flag~lprice+carat+color+clarity+x+y+z+table+depth)
+
+fit = rpart(formula, method="class", data=diamonds)
+
+printcp(fit) # display the results
+plotcp(fit) # visualize cross-validation results
+summary(fit) # detailed summary of splits
+
+# plot tree
+plot(fit, uniform=TRUE, main="Classification Tree for Ideal_flag")
+text(fit, use.n=TRUE, all=TRUE, cex=.8)
+
+# tabulate some of the data
+#table(subset(diamonds, Koc>=190.5)$Ideal_flag)
+
+############### Tree package #############
+# TREE package
+library(tree)
+
+formula <- as.formula(ideal_flag~lprice+carat+color+clarity+x+y+z+table+depth)
+
+tr = tree(formula, data=diamonds)
+summary(tr)
+plot(tr); text(tr)
+
+
+############## Conditional Inference Tree  #############
+
+# Conditional Inference Tree 
+library(party)
+fit <- ctree(price~carat+color+clarity+x+y+z+table+depth,
+             data=diamonds)
+plot(fit, main="Conditional Inference Tree for Ideal_flag All predictors")
+
+# Conditional Inference Tree for Kyphosis
+library(party)
+fit <- ctree(price~color+clarity+y+table+depth,
+             data=diamonds)
+plot(fit, main="Conditional Inference Tree for Ideal_flag y-Model")
 
 
 
 
 
+############### Conditional Inference Tree ######
+# PARTY package
+library(party)
 
+ct = ctree(formla, data = diamonds)
+plot(ct, main="Conditional Inference Tree")
+
+#Table of prediction errors
+table(predict(ct), raw$Ideal_flag)
+
+# Estimated class probabilities
+tr.pred = predict(ct, newdata=diamonds, type="prob")
 
 
 ####################################### SVM #######################################
@@ -3577,7 +3723,7 @@ quit("yes")
 
 
 
-###### Create a Diamonds Matrix to expand Dummy variable for factors ####
+###### lprice Create a Diamonds Matrix to expand Dummy variable for factors ####
 
 names(diamonds)
 
@@ -3608,6 +3754,71 @@ diamond_sample <- sample_n(diamonds_data, 10000)
 #put the 20000 sample back in diamonds data
 diamonds_data=diamond_sample
 
+############################## 
+###### price Create a Diamonds Matrix to expand Dummy variable for factors ####
+
+names(diamonds)
+
+carat + cut + color + clarity + depth + table+ x+y+z+price
+
+#Create a Diamonds Matrix to expand Dummy variable for factors
+
+diamonds_matrix_price_full <- model.matrix( ~ carat 
+                                 + cut 
+                                 + color 
+                                 + clarity 
+                                 + depth 
+                                 + table
+                                 + x
+                                 +y
+                                 +z
+                                 +price , data = diamonds)
+
+diamonds_data_price_full=as.data.frame((diamonds_matrix_price_full))
+
+str(diamonds_data_price_full)
+
+#So lets take less than half the data say 10000 rows
+
+library(dplyr)
+diamond_sample_price_full <- sample_n(diamonds_data_price_full, 10000)
+
+#put the 20000 sample back in diamonds data
+diamonds_data_price_full=diamond_sample_price_full
+
+
+
+
+###### price y-Model Create a Diamonds Matrix to expand Dummy variable for factors ####
+
+names(diamonds)
+
+carat + cut + color + clarity + depth + table+ x+y+z+price
+
+#Create a Diamonds Matrix to expand Dummy variable for factors
+
+diamonds_matrix_price_y <- model.matrix( ~ cut 
+                                            + color 
+                                            + clarity 
+                                            + depth 
+                                            + table
+                                            + y
+                                            +price , data = diamonds)
+
+diamonds_data_price_y=as.data.frame((diamonds_matrix_price_y))
+
+str(diamonds_data_price_y)
+
+#So lets take less than half the data say 10000 rows
+
+library(dplyr)
+diamond_sample_price_y <- sample_n(diamonds_data_price_y, 10000)
+
+#put the 20000 sample back in diamonds data
+diamonds_data_price_y=diamond_sample_price_y
+
+
+
 
 
 
@@ -3627,7 +3838,7 @@ names(diamonds_data)
 
 
 
-#Hierarchical Cluster Analysis
+# ##### Hierarchical Cluster Analysis lprice full ######
 
 #diamonds_data<-subset(diamonds, select=-c(price,ideal_flag))
 
@@ -3635,6 +3846,33 @@ names(diamonds_data)
 diamonds_dist <- dist(as.matrix(diamonds_data))   # find distance matrix 
 diamonds_hc <- hclust(diamonds_dist)                # apply hirarchical clustering 
 plot(diamonds_hc,cex=0.3,color="red")                       # plot the dendrogram 
+
+
+#Hierarchical Cluster Analysis Price Full  
+
+#diamonds_data<-subset(diamonds, select=-c(price,ideal_flag))
+
+#Using distance matrix cluster analysis for relationship discovery. Use hclust, and plot a dendrogram for attributes.
+diamonds_dist <- dist(as.matrix(diamonds_data_price_y))   # find distance matrix 
+diamonds_hc <- hclust(diamonds_dist)                # apply hirarchical clustering 
+plot(diamonds_hc,cex=0.3,color="red")                       # plot the dendrogram 
+
+
+
+
+#Hierarchical Cluster Analysis y - Model
+
+#diamonds_data<-subset(diamonds, select=-c(price,ideal_flag))
+
+#Using distance matrix cluster analysis for relationship discovery. Use hclust, and plot a dendrogram for attributes.
+diamonds_dist <- dist(as.matrix(diamonds_data_price_y))   # find distance matrix 
+diamonds_hc <- hclust(diamonds_dist)                # apply hirarchical clustering 
+plot(diamonds_hc,cex=0.3,color="red")                       # plot the dendrogram 
+
+
+
+
+
 
 ########################################### Cluster ##############################
 
@@ -3665,8 +3903,17 @@ plot(bclust(diam_dist))
      
 plot(daisy(diamonds_data))
      
+############################ Determing number of Clusters ########  
      
-     
+# Determine number of clusters
+wss <- (nrow(diamonds_data)-1)*sum(apply(diamonds_data,2,var))
+for (i in 2:15) wss[i] <- sum(kmeans(diamonds_data,
+                                     centers=i)$withinss)
+plot(1:15, wss, type="b", xlab="Number of Clusters",
+     ylab="Within groups sum of squares") 
+
+
+
 ########################################################## k-means Number of Clusters #####################################################
      
 #    k-means
@@ -3747,6 +3994,12 @@ table(clusterCut, diamonds_scaled$price)
 clusters <- hclust(dist(diamonds_scaled), method = 'average')
 plot(clusters)
 
+###################### pvclust ########
+
+library(pvclust)
+
+diamonds.pv <- pvclust(diamonds_scaled)
+plot(diamonds.pv)
 
 ######################################## GLM #####################################
 
