@@ -4069,7 +4069,7 @@ test
 
 # ### Try out Regression with our R training dataset
 
-# In[14]:
+# In[4]:
 
 #Read in our Data
 diamonds_train_R = pd.read_csv("diamonds_train_R.csv") #load the dataset
@@ -4300,11 +4300,16 @@ model_output.head()
 
 
 
-# In[37]:
+# In[ ]:
+
+##### y-model R Split 
+
+
+# In[51]:
 
 
 
-def model_analysis (model,tag,model_r2_score):
+def model_analysis (model,tag,model_r2_score,tag_code):
 
 
     mae = metrics.mean_absolute_error(test_y, predictions)
@@ -4339,7 +4344,11 @@ def model_analysis (model,tag,model_r2_score):
     #Result obtained after running the algo. Comment the below two lines if you want to run the algo
     mae_list.append(mae)
     comb.append(tag)  
-
+    #predictions_comparison["'" + tag_code + "_" + "actual" + "'"] = test_y
+    #predictions_comparison["'" + tag_code + "_" + "predicted" + "'"] = predictions
+    predictions_comparison[tag_code + "_a"] = test_y
+    predictions_comparison[tag_code + "_p" ] = predictions
+    #tag.replace(" ", "_")
 
 # RFE gives us the following
 # [(1.0, 'y'), 
@@ -4383,13 +4392,15 @@ mae_list = []
 output_columns = ['Model','r^2 on test data', 'Model Score on Training Data','Variance score','Root Mean Squared Error','Mean Absolute Error','Mean Squared Error']
 model_output = pd.DataFrame(columns=output_columns)
 
+predictions_comparison =pd.DataFrame()
+
 # print(model_output.head())
 
 
 alpha = 1.0
 linear = LinearRegression()
 tag = 'linear'
-
+tag_code = 'linear'
 pred_test = linear.fit(train_X, train_y).predict(test_X)
 predictions = pred_test
 r2_score_linear = r2_score(test_y, pred_test)
@@ -4400,7 +4411,7 @@ r2_score_linear = r2_score(test_y, pred_test)
 
 model_r2_score = r2_score_linear
 
-model_analysis(linear,tag,model_r2_score)
+model_analysis(linear,tag,model_r2_score,tag_code)
 
 print('\n'*1)
 
@@ -4409,7 +4420,7 @@ print('\n'*1)
 alpha = 1.0
 ridge = Ridge(alpha=alpha)
 tag = 'ridge'
-
+tag_code = 'ridge'
 pred_test = ridge.fit(train_X, train_y).predict(test_X)
 predictions = pred_test
 r2_score_ridge = r2_score(test_y, pred_test)
@@ -4420,7 +4431,7 @@ r2_score_ridge = r2_score(test_y, pred_test)
 
 model_r2_score = r2_score_ridge
 
-model_analysis(ridge,tag,model_r2_score)
+model_analysis(ridge,tag,model_r2_score,tag_code)
 
 print('\n'*1)
 
@@ -4430,7 +4441,7 @@ print('\n'*1)
 alpha = 0.1
 lasso = Lasso(alpha=alpha)
 tag = 'lasso alpha = 0.1'
-
+tag_code = 'lasso_0_1'
 pred_test = lasso.fit(train_X, train_y).predict(test_X)
 predictions = pred_test
 r2_score_lasso = r2_score(test_y, pred_test)
@@ -4441,7 +4452,7 @@ r2_score_lasso = r2_score(test_y, pred_test)
 
 model_r2_score = r2_score_lasso
 
-model_analysis(lasso,tag,model_r2_score)
+model_analysis(lasso,tag,model_r2_score,tag_code)
 
 print('\n'*1)
 
@@ -4449,7 +4460,8 @@ print('\n'*1)
 
 alpha = 0.0001
 lasso = Lasso(alpha=alpha)
-tag = 'lasso alpha= 0.0001'
+tag = 'lasso alpha = 0.0001'
+tag_code ='lasso_0_0001'
 
 pred_test = lasso.fit(train_X, train_y).predict(test_X)
 predictions = pred_test
@@ -4461,7 +4473,7 @@ r2_score_lasso = r2_score(test_y, pred_test)
 
 model_r2_score = r2_score_lasso
 
-model_analysis(lasso,tag,model_r2_score)
+model_analysis(lasso,tag,model_r2_score,tag_code)
 
 print('\n'*1)
 
@@ -4469,7 +4481,8 @@ print('\n'*1)
 
 alpha = 0.00047
 lasso = Lasso(alpha=alpha)
-tag = 'lasso alpha= 0.00047'
+tag = 'lasso alpha = 0.00047'
+tag_code = 'lasso_0_00047'
 
 pred_test = lasso.fit(train_X, train_y).predict(test_X)
 predictions = pred_test
@@ -4481,7 +4494,7 @@ r2_score_lasso = r2_score(test_y, pred_test)
 
 model_r2_score = r2_score_lasso
 
-model_analysis(lasso,tag,model_r2_score)
+model_analysis(lasso,tag,model_r2_score,tag_code)
 
 print('\n'*1)
 
@@ -4500,6 +4513,7 @@ print('\n'*1)
 alpha = 0.1
 enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
 tag = 'enet alpha = 0.1'
+tag_code = 'enet_0_1'
 
 #y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
 pred_test= enet.fit(train_X, train_y).predict(test_X)
@@ -4511,13 +4525,14 @@ r2_score_enet = r2_score(test_y, pred_test)
 
 model_r2_score = r2_score_enet
 
-model_analysis(enet,tag,model_r2_score)
+model_analysis(enet,tag,model_r2_score,tag_code)
 
 
 #ElasticNet
 alpha = 0.0001
 enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
 tag = 'enet alpha = 0.0001'
+tag_code = 'enet_0_0001'
 
 #y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
 pred_test= enet.fit(train_X, train_y).predict(test_X)
@@ -4529,12 +4544,13 @@ r2_score_enet = r2_score(test_y, pred_test)
 
 model_r2_score = r2_score_enet
 
-model_analysis(enet,tag,model_r2_score)
+model_analysis(enet,tag,model_r2_score,tag_code)
 
 #ElasticNet
 alpha = 0.00094
 enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
 tag = 'enet alpha = 0.00094'
+tag_code = 'enet_0_00094'
 
 #y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
 pred_test= enet.fit(train_X, train_y).predict(test_X)
@@ -4546,7 +4562,7 @@ r2_score_enet = r2_score(test_y, pred_test)
 
 model_r2_score = r2_score_enet
 
-model_analysis(enet,tag,model_r2_score)
+model_analysis(enet,tag,model_r2_score,tag_code)
 
 #Unlike most other scores, R^2 score may be negative (it need not actually be the square of a quantity R).
 
@@ -4556,6 +4572,237 @@ print ('Model formula : lprice ~ y + clarity + color + depth + cut + table')
 
 
 model_output
+
+
+# In[ ]:
+
+#### y-Models R split  
+
+
+
+# In[36]:
+
+repl_test ='lasso alpha = 0.1_actual'
+repl_test.replace(' ','')
+repl_test.replace(' ','_')
+print(repl_test)
+
+
+# In[52]:
+
+predictions_comparison.head(5)
+
+
+# In[77]:
+
+# Lets look at the distributions
+
+#https://www.kaggle.com/pmarcelino/comprehensive-data-exploration-with-python
+#plt.yaxis=dict(range=[0, 7])
+
+plt.figure(figsize=(12,10))
+plt.subplot(3,3,1)
+sns.distplot(predictions_comparison.linear_p)
+plt.subplot(3,3,2)
+sns.distplot(predictions_comparison.ridge_p)
+plt.subplot(3,3,3)
+sns.distplot(predictions_comparison.lasso_0_1_p)
+plt.subplot(3,3,4)
+sns.distplot(predictions_comparison.lasso_0_0001_p)
+plt.subplot(3,3,5)
+sns.distplot(predictions_comparison.lasso_0_00047_p)
+plt.subplot(3,3,6)
+sns.distplot(predictions_comparison.enet_0_1_p)
+plt.subplot(3,3,7)
+sns.distplot(predictions_comparison.enet_0_0001_p)
+plt.subplot(3,3,8)
+sns.distplot(predictions_comparison.enet_0_00094_p)
+plt.subplot(3,3,9)
+sns.distplot(predictions_comparison.linear_a)
+plt.show()
+# Release memory.
+plt.clf()
+plt.close()
+
+
+# In[86]:
+
+import scipy
+
+def shaipro_test_normailty(data,tag_code):
+
+    shapiro_results = scipy.stats.shapiro(data)
+
+#     matrix_sw = [
+#         ['', 'DF', 'Test Statistic', 'p-value'],
+#         ['Sample Data', len(x) - 1, shapiro_results[0], shapiro_results[1]]
+#     ]
+        
+    shapiro_output.loc[shapiro_output.shape[0]] = (tag_code,(len(data) - 1),shapiro_results[0],shapiro_results[1])
+    
+    #shapiro_output    
+    #shapiro_table = FF.create_table(matrix_sw, index=True)
+    #py.iplot(shapiro_table, filename='shapiro-table')
+
+    
+shapiro_columns = ['Model', 'DF', 'Test Statistic', 'p-value']
+shapiro_output = pd.DataFrame(columns=shapiro_columns)
+    
+    
+    #['Model', 'DF', 'Test Statistic', 'p-value']
+shaipro_test_normailty(predictions_comparison.linear_p,'linear_p')
+shaipro_test_normailty(predictions_comparison.ridge_p,'ridge_p')
+shaipro_test_normailty(predictions_comparison.lasso_0_1_p,'lasso_0_1_p')
+shaipro_test_normailty(predictions_comparison.lasso_0_0001_p,'lasso_0_0001_p')
+shaipro_test_normailty(predictions_comparison.lasso_0_00047_p,'lasso_0_00047_p')
+shaipro_test_normailty(predictions_comparison.enet_0_1_p,'enet_0_1_p')
+shaipro_test_normailty(predictions_comparison.enet_0_0001_p,'enet_0_0001_p')
+shaipro_test_normailty(predictions_comparison.enet_0_00094_p,'enet_0_00094_p')
+shaipro_test_normailty(predictions_comparison.linear_a,'linear_a')
+
+shapiro_output
+
+
+
+
+
+
+# In[ ]:
+
+##Kolmogorov-Smirnov NULL HUPOTHESIS data is Normally Distributed
+
+
+# In[93]:
+
+import scipy
+
+def kolmogorov_smirnov_test_normailty(data,tag_code):
+
+    kolmogorov_smirnov_results = scipy.stats.kstest(data, cdf='norm')
+
+#     matrix_sw = [
+#         ['', 'DF', 'Test Statistic', 'p-value'],
+#         ['Sample Data', len(x) - 1, shapiro_results[0], shapiro_results[1]]
+#     ]
+        
+    kolmogorov_smirnov_output.loc[kolmogorov_smirnov_output.shape[0]] = (tag_code,(len(data) - 1),kolmogorov_smirnov_results[0],kolmogorov_smirnov_results[1])
+    
+    
+kolmogorov_smirnov_columns = ['Model', 'DF', 'Test Statistic', 'p-value']
+kolmogorov_smirnov_output = pd.DataFrame(columns=kolmogorov_smirnov_columns)
+    
+    
+#['Model', 'DF', 'Test Statistic', 'p-value']
+kolmogorov_smirnov_test_normailty(predictions_comparison.linear_p,'linear_p')
+kolmogorov_smirnov_test_normailty(predictions_comparison.ridge_p,'ridge_p')
+kolmogorov_smirnov_test_normailty(predictions_comparison.lasso_0_1_p,'lasso_0_1_p')
+kolmogorov_smirnov_test_normailty(predictions_comparison.lasso_0_0001_p,'lasso_0_0001_p')
+kolmogorov_smirnov_test_normailty(predictions_comparison.lasso_0_00047_p,'lasso_0_00047_p')
+kolmogorov_smirnov_test_normailty(predictions_comparison.enet_0_1_p,'enet_0_1_p')
+kolmogorov_smirnov_test_normailty(predictions_comparison.enet_0_0001_p,'enet_0_0001_p')
+kolmogorov_smirnov_test_normailty(predictions_comparison.enet_0_00094_p,'enet_0_00094_p')
+kolmogorov_smirnov_test_normailty(predictions_comparison.linear_a,'linear_a')
+
+kolmogorov_smirnov_output
+
+
+# In[ ]:
+
+##Since our p-value is read as 0.0 (meaning it is "practically" 0 given the decimal accuracy of the test) 
+#then we have strong evidence to not reject the null-hypothesis - No evidence that it is Not Normally Distributed
+
+
+# In[102]:
+
+## Now test if distributions are different
+
+# test
+
+from scipy import stats
+
+
+def t_test_compare(data,tag_code,flag_test) :
+    if flag_test == 0:
+        compare_test_results = stats.ttest_ind(data,predictions_comparison.linear_a)
+        test_name = 'Student’s t-test'
+    else:
+        compare_test_results = stats.ttest_ind(data,predictions_comparison.linear_a, equal_var = False)
+        test_name = 'Welch’s t-test'
+    t_test_output.loc[t_test_output.shape[0]] = (tag_code,compare_test_results[0],compare_test_results[1],test_name)
+    
+    
+t_test_columns = ['Model', 'Test Statistic', 'p-value', ' Test']
+t_test_output = pd.DataFrame(columns=t_test_columns)
+    
+    
+#['Model', 'DF', 'Test Statistic', 'p-value']
+t_test_compare(predictions_comparison.linear_p,'linear_p',0)
+t_test_compare(predictions_comparison.linear_p,'linear_p',1)
+
+t_test_compare(predictions_comparison.ridge_p,'ridge_p',0)
+t_test_compare(predictions_comparison.ridge_p,'ridge_p',1)
+
+t_test_compare(predictions_comparison.lasso_0_1_p,'lasso_0_1_p',0)
+t_test_compare(predictions_comparison.lasso_0_1_p,'lasso_0_1_p',1)
+
+t_test_compare(predictions_comparison.lasso_0_0001_p,'lasso_0_0001_p',0)
+t_test_compare(predictions_comparison.lasso_0_0001_p,'lasso_0_0001_p',1)
+
+t_test_compare(predictions_comparison.lasso_0_00047_p,'lasso_0_00047_p',0)
+t_test_compare(predictions_comparison.lasso_0_00047_p,'lasso_0_00047_p',1)
+
+t_test_compare(predictions_comparison.enet_0_1_p,'enet_0_1_p',0)
+t_test_compare(predictions_comparison.enet_0_1_p,'enet_0_1_p',1)
+
+t_test_compare(predictions_comparison.enet_0_0001_p,'enet_0_0001_p',0)
+t_test_compare(predictions_comparison.enet_0_0001_p,'enet_0_0001_p',1)
+
+t_test_compare(predictions_comparison.enet_0_00094_p,'enet_0_00094_p',0)
+t_test_compare(predictions_comparison.enet_0_00094_p,'enet_0_00094_p',1)
+
+#t_test_compare(predictions_comparison.linear_a,'linear_a')
+
+t_test_output
+
+#Test with sample with identical means:
+
+#If we observe a large p-value, for example larger than 0.05 or 0.1, 
+#then we cannot reject the null hypothesis of identical average scores. 
+#If the p-value is smaller than the threshold, e.g. 1%, 5% or 10%, then we reject the null hypothesis of equal averages.
+
+
+# In[82]:
+
+tag
+
+
+# In[58]:
+
+# Lets look at the distributions
+
+#https://www.kaggle.com/pmarcelino/comprehensive-data-exploration-with-python
+
+
+plt.figure(figsize=(24,20))
+plt.subplot(3,3,1)
+sns.distplot(predictions_comparison.linear_p)
+sns.distplot(predictions_comparison.ridge_p)
+sns.distplot(predictions_comparison.lasso_0_1_p)
+sns.distplot(predictions_comparison.enet_0_1_p)
+plt.show()
+# Release memory.
+plt.clf()
+plt.close()
+
+
+# In[ ]:
+
+######## Marker ~~~~~ #####
+
+
+# In[ ]:
+
+
 
 
 # #### Let's try carat as out single value from out possible quatet of Multicollinear predictors
@@ -5191,7 +5438,12 @@ print ('Model formula : lprice ~ y + carat + clarity + color + depth + cut + tab
 model_output.head()
 
 
-# In[35]:
+# In[ ]:
+
+###### y - Models R Split + carat
+
+
+# In[15]:
 
 def model_analysis (model,tag,model_r2_score):
 
@@ -5229,6 +5481,8 @@ def model_analysis (model,tag,model_r2_score):
     mae_list.append(mae)
     comb.append(tag)  
 
+    predictions_comparison["'" + tag + "_" + "actual" + "'"] = test_y
+    predictions_comparison["'" + tag + "_" + "predicted" + "'"] = predictions
 
 # RFE gives us the following
 # [(1.0, 'y'), 
@@ -5269,8 +5523,15 @@ comb = []
 #Dictionary to store the MAE for all algorithms 
 mae_list = []
 
+
+predictions_list = []
+
 output_columns = ['Model','r^2 on test data', 'Model Score on Training Data','Variance score','Root Mean Squared Error','Mean Absolute Error','Mean Squared Error']
 model_output = pd.DataFrame(columns=output_columns)
+
+predictions_comparison =pd.DataFrame()
+
+
 
 # print(model_output.head())
 
@@ -5333,6 +5594,7 @@ model_r2_score = r2_score_lasso
 model_analysis(lasso,tag,model_r2_score)
 
 print('\n'*1)
+
 
 #Lasso 0.0001
 
@@ -5448,6 +5710,23 @@ print ('Model formula : lprice ~ y + carat + clarity + color + depth + cut + tab
 
 
 model_output
+
+#predictions_list
+
+
+# In[ ]:
+
+###let's see if these predicted value are statistally different for the Models
+
+
+# In[20]:
+
+(predictions_comparison.head(5))
+
+
+# In[ ]:
+
+
 
 
 # In[28]:
