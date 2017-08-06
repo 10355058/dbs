@@ -2227,7 +2227,7 @@ TukeyHSD(fit_aov_y) # where fit comes from aov()
 
 
 
-##################### prediction of lprice carat v y ################
+##################### y-Model prediction of lprice carat v y ################
 
 
 #Carat 
@@ -2235,6 +2235,7 @@ predicted_using_carat <- as.numeric(predict(fit_mcol_noyxz, data.frame(diamonds_
 
 #y 
 predicted_using_y <- as.numeric(predict(fit_mcol_noxzcarat, data.frame(diamonds_test)))
+
 
 head(predicted_using_carat)
 
@@ -2261,7 +2262,169 @@ plot(as.numeric(predicted_using_y),as.numeric(diamonds_test$lprice))
 
 plot(as.numeric(diamonds_test$lprice),as.numeric(predicted_using_y))
 
+
+plot(as.numeric(diamonds_test$lprice),as.numeric(predicted_using_y))
+
+
+
 head(lprice_predicted_using_carat)
+
+pdf("y_Model_plot.pdf")
+plot(fit_mcol_noxzcarat)
+
+dev.off()
+
+
+plot(as.numeric(diamonds_test$lprice),as.numeric(predicted_using_y))
+
+############################ y-Model predict Price Plot ##############
+
+plot(as.numeric(diamonds_test$price),as.numeric(exp(predicted_using_y)))
+
+summary(as.numeric(exp(predicted_using_y)))
+
+quantile(exp(predicted_using_y),c(0.90,0.95,0.99));
+quantile(diamonds_test$price,c(0.90,0.95,0.99));
+
+head(diamonds_test$price)
+
+log(326)
+exp(5.786897)
+
+#y-model_output
+
+
+y_model_output <- NULL
+y_model_output_compare <-NULL
+
+y_model_predicted_lprice <- as.numeric(predict(fit_mcol_noxzcarat, data.frame(diamonds_test)))
+
+y_model_actual_lprice<-diamonds_test$lprice
+
+y_model_output_compare= data.frame(y_model_predicted_lprice,y_model_actual_lprice)
+
+
+
+
+summary(y_model_output_compare)
+head(y_model_output_compare)
+
+y_model_output_compare$actual_price <- diamonds_test$price
+y_model_output_compare$predicted_price <-exp(y_model_predicted_lprice)
+
+#y_model_output_price <-exp(y_model_output)
+head(y_model_output_price)
+
+summary(y_model_output_compare)
+
+
+## Outlier in Predicted
+y_model_output_compare[(y_model_output_compare$y_model_predicted_lprice>11),]
+
+
+#Use the max actual price as a filter and see what we have
+y_model_output_compare[(y_model_output_compare$predicted_price>50000),]
+
+################## **** y-Model plot **** #####
+
+plot(as.numeric(weka_output_price),as.numeric(diamonds_test$price))
+
+length(which(y_model_output_compare$actual_price >15000))
+#504
+length(which(y_model_output_compare$predicted_price >30000))
+#40
+
+plot(as.numeric(y_model_output_compare$actual_price),y_model_output_compare$predicted_price)
+
+
+pdf("weka & linear actual v predicted")
+plot(as.numeric(weka_output_price),as.numeric(diamonds_test$price))
+
+plot(y_model_output_compare$predicted_price,as.numeric(y_model_output_compare$actual_price))
+
+dev.off()
+
+pdf("weka & linear actual_lprice v predicted_lprice")
+plot(as.numeric(weka_test_predicted),as.numeric(diamonds_test$lprice))
+
+plot(y_model_output_compare$y_model_predicted_lprice,as.numeric(y_model_output_compare$y_model_actual_lprice))
+
+dev.off()
+str(y_model_output_compare)
+
+cor(as.numeric(weka_output_price,as.numeric(diamonds_test$price)))
+
+#Normalirt test for Weka price
+shapiro.test(weka_output_price)
+
+ks.test(weka_output_price, diamonds_test$price)
+
+########################### y-Model Outliers ################
+head(diamonds_test)
+
+diamonds_test_backup<- diamonds_test
+diamonds_train_backup<-diamonds_train
+
+diamonds_test_reindex<- diamonds_test
+
+
+head(diamonds_test_reindex)
+
+
+#Reindex out dataset 
+rownames(diamonds_test) <- 1:nrow(diamonds_test)
+rownames(diamonds_train) <- 1:nrow(diamonds_train)
+
+
+
+
+#y reindexing
+predicted_using_y_reindex <- as.numeric(predict(fit_mcol_noxzcarat, data.frame(diamonds_test_reindex)))
+
+plot(fit_mcol_noxzcarat)
+
+
+(diamonds_test_reindex[which(fit_mcol_noxzcarat$residuals > 2),])
+
+
+fit_mcol_noxzcarat<-lm(lprice~ cut+color+clarity+y+table+depth,data=diamonds_train)
+summary(fit_mcol_noxzcarat)
+
+plot(fit_mcol_noxzcarat)
+
+diamonds_train[which(fit_mcol_noxzcarat$residuals > 2),]
+
+diamonds_train[35082,]
+diamonds_train[19230,]
+diamonds_train[30851,]
+
+#Show outlier together
+diamonds_train[c(35082,19230,30851),]
+
+## Categorise Outliers
+
+diamonds_train[diamonds_train$cut == 'Premium',]
+
+diamonds_train[(diamonds_train$carat < 0.40) & (diamonds_train$price < 1000),]
+
+#Check other diamonds similar to 35082
+diamonds_train[(diamonds_train$carat == 1.22) & (diamonds_train$color == 'J')  & (diamonds_train$cut == 'Premium'),]
+
+
+
+
+#Check 19230
+diamonds_train[(diamonds_train$carat == 0.34) & (diamonds_train$color == 'F')  & (diamonds_train$cut == 'Fair'),]
+
+diamonds_train[(diamonds_train$clarity == 'I1') & (diamonds_train$color == 'F')  & (diamonds_train$cut == 'Fair'),]
+
+diamonds_train[(diamonds_train$carat == 0.34) &  (diamonds_train$cut == 'Fair'),]
+
+
+#Check other diamonds similar to 30581
+diamonds_train[(diamonds_train$carat == 0.39) & (diamonds_train$color == 'H')  & (diamonds_train$cut == 'Premium'),]
+
+
 
 #### add predicted_price
 
@@ -2286,6 +2449,185 @@ head(lprice_pred_using_carat)
 lprice_pred_using_y= as.data.frame(lprice_pred_using_y)
 head(lprice_pred_using_y)
 
+
+
+###############################    Let's drop the Outliers and see if we get any improvement ###########################
+
+diamonds_train_trimmed <- diamonds_train
+str(diamonds_train_trimmed)
+summary(diamonds_train_trimmed)
+
+#Show outlier together
+diamonds_train_trimmed[c(35082,19230,30851),]
+
+diamonds_train_trimmed <- diamonds_train_trimmed[-c(35082,19230,30851),]
+str(diamonds_train_trimmed)
+str(diamonds_train)
+
+
+#Reindex dataframe after deletions
+rownames(diamonds_train_trimmed) <- 1:nrow(diamonds_train_trimmed)
+
+
+fit_lm_trimmed<-lm(lprice~ cut+color+clarity+y+table+depth,data=diamonds_train_trimmed)
+summary(fit_lm_trimmed)
+
+plot(fit_lm_trimmed)
+
+# > summary(fit_lm_trimmed)
+# 
+# Call:
+#   lm(formula = lprice ~ cut + color + clarity + y + table + depth, 
+#      data = diamonds_train_trimmed)
+# 
+# Residuals:
+#   Min      1Q  Median      3Q     Max 
+# -1.5236 -0.1070  0.0136  0.1116  1.3410 
+# 
+# Coefficients:
+#   Estimate Std. Error  t value Pr(>|t|)    
+# (Intercept)  -1.8819074  0.0650060  -28.950  < 2e-16 ***
+#   cutGood       0.0263944  0.0059366    4.446 8.77e-06 ***
+#   cutIdeal      0.1030059  0.0059043   17.446  < 2e-16 ***
+#   cutPremium    0.0886410  0.0057038   15.541  < 2e-16 ***
+#   cutVery Good  0.0456379  0.0056889    8.022 1.07e-15 ***
+#   colorE       -0.0564558  0.0031601  -17.865  < 2e-16 ***
+#   colorF       -0.0905159  0.0032062  -28.231  < 2e-16 ***
+#   colorG       -0.1600011  0.0031289  -51.136  < 2e-16 ***
+#   colorH       -0.2710567  0.0033257  -81.504  < 2e-16 ***
+#   colorI       -0.4103960  0.0037183 -110.373  < 2e-16 ***
+#   colorJ       -0.5580055  0.0045973 -121.378  < 2e-16 ***
+#   clarityIF     1.0634001  0.0090690  117.257  < 2e-16 ***
+#   claritySI1    0.6121841  0.0077413   79.080  < 2e-16 ***
+#   claritySI2    0.4304216  0.0077909   55.246  < 2e-16 ***
+#   clarityVS1    0.8149298  0.0079053  103.087  < 2e-16 ***
+#   clarityVS2    0.7469652  0.0077843   95.958  < 2e-16 ***
+#   clarityVVS1   0.9805859  0.0083654  117.219  < 2e-16 ***
+#   clarityVVS2   0.9225703  0.0081458  113.257  < 2e-16 ***
+#   y             0.9832610  0.0008861 1109.682  < 2e-16 ***
+#   table         0.0089175  0.0005156   17.294  < 2e-16 ***
+#   depth         0.0471352  0.0007086   66.522  < 2e-16 ***
+#   ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+# 
+# Residual standard error: 0.1666 on 37718 degrees of freedom
+# Multiple R-squared:  0.9731,	Adjusted R-squared:  0.9731 
+# F-statistic: 6.816e+04 on 20 and 37718 DF,  p-value: < 2.2e-16
+
+
+#Outlier additional - why are these value so different
+
+
+# 18900
+# 15078
+# 33474
+
+#From Cook's distance
+
+#2179
+#31322
+
+
+summary(residuals.lm(fit_lm_trimmed))
+
+
+residuals.lm(fit_lm_trimmed)
+cooks.distance(fit_lm_trimmed)
+
+#rownames(diamonds_test)
+str(rownames(diamonds_train_trimmed))
+
+str(residuals.lm(fit_lm_trimmed))
+
+fit_lm_residuals = as.data.frame(rownames(diamonds_train_trimmed)) 
+
+fit_lm_residuals$residuals <-residuals.lm(fit_lm_trimmed)
+
+fit_lm_residuals$leverage<- cooks.distance(fit_lm_trimmed)
+
+head(fit_lm_residuals)
+
+#fit_lm_residuals<-residuals.lm(fit_lm_trimmed)
+
+(fit_lm_residuals<-NULL)
+
+head(residuals.lm(fit_lm_trimmed))
+
+
+# Lets see just how the residuals are ditributed
+
+hist(fit_lm_residuals$residuals)
+
+#### Try a Density plot of Residuals #######
+# Kernel Density Plot
+plot(density(fit_lm_residuals$residuals)) # returns the density data
+
+
+# Shapiro - p-value <= 0.05, reject the NULL hypothesis that the samples came from a Normal distribution
+shapiro.test(fit_lm_residuals$residuals)
+
+
+
+
+#d <- 
+#plot(d) # plots the results 
+
+#Show outlier together
+
+#Show high keverage values
+
+fit_lm_residuals[(fit_lm_residuals$leverage>0.005),]
+
+# 12 values in all
+length(which(fit_lm_residuals$leverage>0.005))
+
+
+
+
+
+
+diamonds_train_trimmed[c(18900,15078,33474),]
+
+
+#Count number of 
+
+#18900
+
+
+
+diamonds_train_trimmed <- diamonds_train_trimmed[-c(35082,19230,30851),]
+str(diamonds_train_trimmed)
+str(diamonds_train)
+
+
+
+lprice_pred_trimmed <- as.numeric(predict(fit_lm_trimmed, data.frame(diamonds_test)))
+
+summary(lprice_pred_trimmed)
+
+head(diamonds_test)
+
+pdf("y-model less Outliers")
+
+plot(lprice_pred_trimmed,as.numeric(diamonds_test$lprice))
+
+plot(exp(lprice_pred_trimmed),exp(diamonds_test$lprice))
+
+dev.off()
+
+
+##################### y-Model extend ###############
+
+fit_alt<-lm(lprice~ cut+color+clarity+y+table+depth,data=diamonds_train_trimmed)
+summary(fit_alt)
+
+plot(fit_alt)
+
+#31322
+#2179
+
+
+###########################################################
 
 ####Tukey HSD lprice carat vs y ####
 
@@ -3045,11 +3387,25 @@ M5_weka_temp$weka_test_predicted > 11
 
 M5_weka_temp[M5_weka_temp$weka_test_predicted > 11,]
 
-################## y-Model #############
+################## y-Model RWeka #############
+library(RWeka)
+
 library("partykit")
 M5_weka_y = M5P (lprice~ cut+color+clarity+y+table+depth, data=diamonds_train, control = Weka_control(N=F, M=10))
 y_weka_train_predicted = predict(M5_weka_y, diamonds_train)
 y_weka_test_predicted = predict(M5_weka_y, diamonds_test)
+
+summary(M5_weka_y)
+
+# === Summary ===
+#   
+#   Correlation coefficient                0.9944
+# Mean absolute error                      0.0818
+# Root mean squared error                  0.1074
+# Relative absolute error                  9.3233 %
+# Root relative squared error             10.5763 %
+# Total Number of Instances                 37742     
+
 
 plot(M5_weka_y)
 
@@ -3070,6 +3426,18 @@ plot(as.numeric(y_M5_weka_temp$price),as.numeric(y_M5_weka_temp$y_predicted_pric
 ###### y-Model plot M5 ####
 
 plot(as.numeric(y_M5_weka_temp$y_predicted_price),as.numeric(y_M5_weka_temp$price))
+
+
+######### Try optimise  M5 ###################
+
+
+library(caret)
+M5_Optimization = train (lprice~ cut+color+clarity+y+table+depth,data =  diamonds_train, method = 'M5')
+
+# M5_weka_y = M5P (lprice~ cut+color+clarity+y+table+depth, data=diamonds_train, control = Weka_control(N=F, M=10))
+# y_weka_train_predicted = predict(M5_weka_y, diamonds_train)
+# y_weka_test_predicted = predict(M5_weka_y, diamonds_test)
+
 
 
 
@@ -3412,6 +3780,50 @@ abline(as.numeric(output_price),as.numeric(diamonds_test$price))
 str(output_price)
 str(diamonds_test)
 ################################ Additional Models #######################
+
+
+####Apply y- Model from Training data to Test data ####
+mod<-lm(lprice~cut+color+clarity+y+table+depth,data=diamonds_train)
+
+output <- predict(mod, data.frame(diamonds_test))
+
+output
+output_price <-exp(output)
+
+output_price_new <-( 10 ^ (output) )
+head(output_price)
+
+summary(output_price)
+
+plot(as.numeric(output_price),as.numeric(diamonds_test$price))
+
+
+output_price_column=c(as.numeric(output_price))
+
+
+
+output_test_price_column =c(as.numeric(diamonds_test$price))
+
+
+output_dataframe= data.frame(output_test_price_column,output_price_column)
+
+cor(output_dataframe$output_test_price_column,output_dataframe$output_price_column)
+
+
+
+summary(output_dataframe$output_test_price_column,output_dataframe$output_price_column)
+
+
+
+
+head (output_dataframe)
+summary(output_dataframe)
+
+abline(as.numeric(output_price),as.numeric(diamonds_test$price))
+str(output_price)
+str(diamonds_test)
+
+
 
 
 ################################################## # Regression Tree Example to see if its any help #########################################
