@@ -3,7 +3,7 @@
 
 # # Quick data modification if we just want to jump to the Models with the appropriate data structure
 
-# In[1]:
+# In[19]:
 
 #Note: Attribution for code samples/credit to be added as we go.
 # many based on code sample for ployly, kaggle, sklearn
@@ -54,7 +54,7 @@ diamonds['ideal_flag'] = diamonds['cut'].apply(lambda x: 'True' if x == 'Ideal' 
 ### Train/Test split
 
 
-# In[2]:
+# In[20]:
 
 
 
@@ -3144,7 +3144,12 @@ train_X=diamonds_train[['carat','cut','clarity','color','x','y','z','depth','tab
 train_X.columns  - ['carat','x','z',]
 
 
-# In[20]:
+# In[27]:
+
+train_y.info()
+
+
+# In[21]:
 
 #http://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_and_elasticnet.html#sphx-glr-auto-examples-linear-model-plot-lasso-and-elasticnet-py
 #Working Lasso Example 
@@ -3288,8 +3293,13 @@ lasso = Lasso(alpha=alpha)
 tag = 'lasso'
 
 pred_test = lasso.fit(train_X, train_y).predict(test_X)
+
+## lets see what the coefficients are
+print dict(zip(train_X.columns, lasso.coef_))
+
 predictions = pred_test
 r2_score_lasso = r2_score(test_y, pred_test)
+
 
 # print(lasso)
 # print ('alpha :' , alpha)
@@ -3336,6 +3346,332 @@ print('\n'*1)
 print ('Model formula : lprice ~ carat + cut + clarity + color + x + y + z + depth + table')
 
 model_output.head()
+
+
+# In[40]:
+
+#http://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_and_elasticnet.html#sphx-glr-auto-examples-linear-model-plot-lasso-and-elasticnet-py
+#Working Lasso Example 
+
+def model_analysis (model,tag,model_r2_score):
+#     print('Model Score on Training Data')
+
+#     print(model.score(train_X, train_y))
+
+#     print('Coefficients: \n', model.coef_)
+#     print('Intercept: \n', model.intercept_)
+
+#     # The mean squared error
+#     print("Mean squared error: %.2f"
+#       % np.mean((predictions - test_y) ** 2))
+
+#     # Explained variance score: 1 is perfect prediction
+#     print('Variance score: %.2f' % model.score(test_X, test_y))
+
+#     print('\n'*1)
+#     #Root mean Squared error
+#     print ('\nRoot Mean Squared Error')
+
+#     print np.sqrt(metrics.mean_squared_error(test_y,predictions))
+
+
+    mae = metrics.mean_absolute_error(test_y, predictions)
+    mse = metrics.mean_squared_error(test_y, predictions)
+
+#     print('\nMean Absolute Error')
+#     print(mae)
+
+#     print('\nMean Squared Error')
+#     print(mse)
+
+    pred_len=int(len(predictions))
+#     print(pred_len)
+
+    output_columns = ['Model','r^2 on test data','Variance score','Root Mean Squared Error','Mean Absolute Error','Mean Squared Error']
+
+    #df = pd.DataFrame([[1, 2], [3, 4]], columns=list('AB')) 
+    #df.loc[len(df)]=['8/19/2014','Jun','Fly','98765'] 
+    model_output.loc[model_output.shape[0]] = (tag,'{0:.6f}'.format(model_r2_score),'{0:.6f}'.format(model.score(test_X, test_y)),
+                        '{0:.6f}'.format(model.score(train_X, train_y)),np.sqrt(metrics.mean_squared_error(test_y,predictions)),(mae),mse)
+    #'{0:.6f}'.format(model.score(X_to_use, y_to_use)),np.sqrt(metrics.mean_squared_error(y_to_test, pred_test)),(mae),mse)
+    
+    #model_output.append(c(model,model_r2_score,np.mean((predictions - test_y) ** 2),
+                        #model.score(test_X, test_y),np.sqrt(metrics.mean_squared_error(test_y,predictions)),mae,mse))
+    
+    plt.figure(figsize=(12, 6))
+    plt.subplot(1, 2, 1)
+    my_title=('Prediction for Model: %s'%(model))
+    plt.title(my_title +'\n')
+    #plt.title('Prediction')
+    plt.scatter(test_y, pred_test, 
+         label='Prediction Accuracy')
+    plt.legend(loc='upper left')
+    #plt.xlabel('Actual')
+    #plt.ylabel('Predicted')
+
+    plt.show()
+
+    # Release memory.
+    plt.clf()
+    plt.close()
+    
+    #Result obtained after running the algo. Comment the below two lines if you want to run the algo
+    mae_list.append(mae)
+    comb.append(tag)  
+
+def rank_to_dict(ranks, names, order=1):
+    minmax = MinMaxScaler()
+    ranks = minmax.fit_transform(order*np.array([ranks]).T).T[0]
+    ranks = map(lambda x: round(x, 2), ranks)
+    return dict(zip(names, ranks ))    
+    
+
+train_X=diamonds_train[['carat','cut','clarity','color','x','y','z','depth','table']]# taking the training data features
+train_y=diamonds_train[['lprice']] # output of our training data
+test_X =diamonds_test[['carat','cut','clarity','color','x','y','z','depth','table']] # taking test data features
+test_y=diamonds_test[['lprice']]  #output value of test data
+
+from sklearn import metrics
+from sklearn.metrics import r2_score
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Ridge
+from sklearn.linear_model import Lasso
+from sklearn.linear_model import ElasticNet
+
+from sklearn.preprocessing import MinMaxScaler
+
+#from sklearn.ensemble import RandomForestRegressor
+import numpy as np
+
+
+
+ranks = {}
+
+names = np.array(list(train_X))
+
+#List of combinations
+comb = []
+
+#Dictionary to store the MAE for all algorithms 
+mae_list = []
+
+output_columns = ['Model','r^2 on test data', 'Model Score on Training Data','Variance score','Root Mean Squared Error','Mean Absolute Error','Mean Squared Error']
+model_output = pd.DataFrame(columns=output_columns)
+
+# print(model_output.head())
+
+
+alpha = 0.1
+linear = LinearRegression()
+tag = 'linear'
+
+pred_test = linear.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_linear = r2_score(test_y, pred_test)
+
+#print(linear.fit)
+# print ('alpha :' , alpha)
+# print("r^2 on test data : %f" % r2_score_linear)
+
+model_r2_score = r2_score_linear
+
+model_analysis(linear,tag,model_r2_score)
+
+print('\n'*1)
+
+
+#Ridge
+alpha = 1.0
+ridge = Ridge(alpha=alpha)
+tag = 'ridge'
+
+pred_test = ridge.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_ridge = r2_score(test_y, pred_test)
+
+# print(ridge)
+# print ('alpha :' , alpha)
+# print("r^2 on test data : %f" % r2_score_ridge)
+
+model_r2_score = r2_score_ridge
+
+model_analysis(ridge,tag,model_r2_score)
+
+print('\n'*1)
+
+
+#Lasso
+
+alpha = 0.1
+lasso = Lasso(alpha=alpha)
+tag = 'lasso alpha = 0.1'
+
+pred_test = lasso.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_lasso = r2_score(test_y, pred_test)
+
+#Let's look for variable selection
+print dict(zip(train_X.columns, lasso.coef_))
+
+#################################################
+
+#print "Features sorted by their coefficient:"
+#print('\n'*1)
+
+ranks["lasso alpha = 0.1"] = rank_to_dict(np.abs(lasso.coef_), names)
+#print (ranks["lasso alpha = 0.1"])
+#print('\n'*2)
+
+##################################################
+
+# print(lasso)
+# print ('alpha :' , alpha)
+# print("r^2 on test data : %f" % r2_score_lasso)
+
+model_r2_score = r2_score_lasso
+
+model_analysis(lasso,tag,model_r2_score)
+
+print('\n'*1)
+
+
+
+#Lasso 0.0001
+
+alpha = 0.0001
+lasso = Lasso(alpha=alpha)
+tag = 'lasso alpha = 0.0001'
+
+pred_test = lasso.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_lasso = r2_score(test_y, pred_test)
+
+#Let's look for variable selection
+print dict(zip(train_X.columns, lasso.coef_))
+#################################################
+
+#print "Features sorted by their coefficient:"
+#print('\n'*1)
+
+ranks["lasso alpha = 0.0001"] = rank_to_dict(np.abs(lasso.coef_), names)
+#print (ranks["lasso alpha = 0.0001"])
+#print('\n'*2)
+
+##################################################
+
+# print(lasso)
+# print ('alpha :' , alpha)
+# print("r^2 on test data : %f" % r2_score_lasso)
+
+model_r2_score = r2_score_lasso
+
+model_analysis(lasso,tag,model_r2_score)
+
+print('\n'*1)
+
+
+
+
+#Lasso 0.00047
+
+alpha = 0.00047
+lasso = Lasso(alpha=alpha)
+tag = 'lasso alpha = 0.00047'
+
+pred_test = lasso.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_lasso = r2_score(test_y, pred_test)
+
+#Let's look for variable selection
+print dict(zip(train_X.columns, lasso.coef_))
+#################################################
+#print "Features sorted by their coefficient:"
+#print('\n'*1)
+
+ranks["lasso alpha = 0.00047"] = rank_to_dict(np.abs(lasso.coef_), names)
+#print (ranks["lasso alpha = 0.00047"])
+#print('\n'*2)
+##################################################
+# print(lasso)
+# print ('alpha :' , alpha)
+# print("r^2 on test data : %f" % r2_score_lasso)
+
+model_r2_score = r2_score_lasso
+
+model_analysis(lasso,tag,model_r2_score)
+
+print('\n'*1)
+
+
+
+#ElasticNet
+alpha = 0.1
+enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
+tag = 'enet alpha = 0.1'
+
+#y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
+
+pred_test = enet.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_enet = r2_score(test_y, pred_test)
+
+# print(enet)
+# print("r^2 on test data : %f" % r2_score_enet)
+
+model_r2_score = r2_score_enet
+
+model_analysis(enet,tag,model_r2_score)
+
+#ElasticNet
+alpha = 0.0001
+enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
+tag = 'enet alpha = 0.0001'
+
+#y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
+pred_test= enet.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_enet = r2_score(test_y, pred_test)
+
+# print(enet)
+# print("r^2 on test data : %f" % r2_score_enet)
+
+model_r2_score = r2_score_enet
+
+model_analysis(enet,tag,model_r2_score)
+
+#ElasticNet
+alpha = 0.00094
+enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
+tag = 'enet alpha = 0.00094'
+
+#y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
+pred_test= enet.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_enet = r2_score(test_y, pred_test)
+
+# print(enet)
+# print("r^2 on test data : %f" % r2_score_enet)
+
+model_r2_score = r2_score_enet
+
+model_analysis(enet,tag,model_r2_score)
+
+#Unlike most other scores, R^2 score may be negative (it need not actually be the square of a quantity R).
+
+####Lasso feature Selection
+print "Lasso features sorted by their coefficient:"
+print('\n'*1)
+print ("alpha = 0.1")
+print(ranks["lasso alpha = 0.1"])
+print ('alpha = 0.0001')
+print(ranks["lasso alpha = 0.0001"])
+print ('alpha = 0.00047')
+print(ranks["lasso alpha = 0.00047"])
+
+print('\n'*1)
+print ('Model formula : lprice ~ carat + cut + clarity + color + x + y + z + depth + table')
+
+model_output
 
 
 # In[39]:
@@ -4069,7 +4405,7 @@ test
 
 # ### Try out Regression with our R training dataset
 
-# In[4]:
+# In[41]:
 
 #Read in our Data
 diamonds_train_R = pd.read_csv("diamonds_train_R.csv") #load the dataset
@@ -4113,6 +4449,225 @@ diamonds_train_R, diamonds_test_R = encode_features(diamonds_train_R, diamonds_t
 
 # #### Let's try y as out single value from out possible quartet of Multicollinear predictors
 
+# In[47]:
+
+print(np.log(325))
+
+
+# In[48]:
+
+print(np.exp(5.78))
+
+
+# ### y-Model R split - show price plot
+
+# In[58]:
+
+
+
+def model_analysis (model,tag,model_r2_score):
+
+
+    mae = metrics.mean_absolute_error(test_y, predictions)
+    mse = metrics.mean_squared_error(test_y, predictions)
+
+
+    pred_len=int(len(predictions))
+
+    output_columns = ['Model','r^2 on test data','Variance score','Root Mean Squared Error','Mean Absolute Error','Mean Squared Error']
+ 
+    model_output.loc[model_output.shape[0]] = (tag,'{0:.6f}'.format(model_r2_score),'{0:.6f}'.format(model.score(test_X, test_y)),
+                        model.score(test_X, test_y),np.sqrt(metrics.mean_squared_error(test_y,predictions)),(mae),mse)
+    
+    
+    #plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(6, 4))
+    #plt.subplot(1, 2, 1)
+    my_title=('Prediction for Model: %s'%(model))
+    plt.title(my_title +'\n')
+    #plt.title('Prediction')
+    #plt.scatter(test_y, pred_test, 
+         #label='Prediction Accuracy')
+    plt.scatter(pred_test, test_y , 
+         label='Prediction Accuracy')
+    plt.legend(loc='upper left')
+    #plt.xlabel('Actual')
+    #plt.ylabel('Predicted')
+
+    plt.show()
+    
+    plt.figure(figsize=(6, 4))
+    #plt.subplot(1, 2, 2)
+    my_title=('Price Prediction for Model: %s'%(model))
+    plt.title(my_title +'\n')
+    #plt.title('Prediction')
+    #plt.scatter(np.exp(test_y), np.exp(pred_test), 
+         #label='Prediction Accuracy')
+    plt.scatter(np.exp(pred_test),np.exp(test_y), 
+         label='Price Prediction')
+    plt.legend(loc='lower right')
+    
+    plt.show()
+
+    # Release memory.
+    plt.clf()
+    plt.close()
+    
+    #Result obtained after running the algo. Comment the below two lines if you want to run the algo
+    mae_list.append(mae)
+    comb.append(tag)  
+
+
+# RFE gives us the following
+# [(1.0, 'y'), 
+#  (2.0, 'carat'), 
+#  (3.0, 'z'), 
+#  (4.0, 'x'), 
+#  (5.0, 'clarity'), 
+#  (6.0, 'color'), 
+#  (7.0, 'depth'), 
+#  (8.0, 'cut'), 
+#  (9.0, 'table')]
+
+
+
+train_X=diamonds_train_R[['y','clarity', 'color', 'depth',  'cut',  'table']]# taking the training data features
+train_y=diamonds_train_R[['lprice']] # output of our training data
+test_X =diamonds_test_R[['y','clarity', 'color', 'depth',  'cut',  'table']] # taking test data features
+test_y=diamonds_test_R[['lprice']]  #output value of test data
+
+# train_X=diamonds_train[['carat','cut','clarity','color','x','y','z','depth','table']]# taking the training data features
+# train_y=diamonds_train[['lprice']] # output of our training data
+# test_X =diamonds_test[['carat','cut','clarity','color','x','y','z','depth','table']] # taking test data features
+# test_y=diamonds_test[['lprice']]  #output value of test data
+
+
+
+from sklearn import metrics
+from sklearn.metrics import r2_score
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Ridge
+from sklearn.linear_model import Lasso
+from sklearn.linear_model import ElasticNet
+    
+
+#List of combinations
+comb = []
+
+#Dictionary to store the MAE for all algorithms 
+mae_list = []
+
+output_columns = ['Model','r^2 on test data', 'Model Score on Training Data','Variance score','Root Mean Squared Error','Mean Absolute Error','Mean Squared Error']
+model_output = pd.DataFrame(columns=output_columns)
+
+# print(model_output.head())
+
+
+alpha = 1.0
+linear = LinearRegression()
+tag = 'linear'
+
+pred_test = linear.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_linear = r2_score(test_y, pred_test)
+
+# print(linear)
+# print ('alpha :' , alpha)
+# print("r^2 on test data : %f" % r2_score_linear)
+
+model_r2_score = r2_score_linear
+
+model_analysis(linear,tag,model_r2_score)
+
+print('\n'*1)
+
+
+#Ridge
+alpha = 1.0
+ridge = Ridge(alpha=alpha)
+tag = 'ridge'
+
+pred_test = ridge.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_ridge = r2_score(test_y, pred_test)
+
+# print(ridge)
+# print ('alpha :' , alpha)
+# print("r^2 on test data : %f" % r2_score_ridge)
+
+model_r2_score = r2_score_ridge
+
+model_analysis(ridge,tag,model_r2_score)
+
+print('\n'*1)
+
+
+#Lasso
+
+alpha = 0.1
+lasso = Lasso(alpha=alpha)
+tag = 'lasso'
+
+pred_test = lasso.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_lasso = r2_score(test_y, pred_test)
+
+# print(lasso)
+# print ('alpha :' , alpha)
+# print("r^2 on test data : %f" % r2_score_lasso)
+
+model_r2_score = r2_score_lasso
+
+model_analysis(lasso,tag,model_r2_score)
+
+print('\n'*1)
+
+# alpha = 1.0
+# lasso = Lasso(alpha=alpha)
+
+# pred_test = lasso.fit(train_X, train_y).predict(test_X)
+# r2_score_lasso = r2_score(test_y, pred_test)
+# print(lasso)
+# print ('alpha :' , alpha)
+# print("r^2 on test data : %f" % r2_score_lasso)
+
+# print('\n'*1)
+
+#ElasticNet
+
+enet = ElasticNet(alpha=alpha, l1_ratio=0.7)
+tag = 'enet'
+
+#y_pred_enet = enet.fit(train_X, train_y).predict(test_X)
+pred_test= enet.fit(train_X, train_y).predict(test_X)
+predictions = pred_test
+r2_score_enet = r2_score(test_y, pred_test)
+
+# print(enet)
+# print("r^2 on test data : %f" % r2_score_enet)
+
+model_r2_score = r2_score_enet
+
+model_analysis(enet,tag,model_r2_score)
+
+#Unlike most other scores, R^2 score may be negative (it need not actually be the square of a quantity R).
+
+print('\n'*1)
+
+print ('Model formula : lprice ~ y + clarity + color + depth + cut + table')
+
+
+model_output.head()
+
+
+
+
+
+# In[ ]:
+
+##Lprice Plots only
+
+
 # In[26]:
 
 
@@ -4133,6 +4688,7 @@ def model_analysis (model,tag,model_r2_score):
     
     
     plt.figure(figsize=(12, 6))
+    
     plt.subplot(1, 2, 1)
     my_title=('Prediction for Model: %s'%(model))
     plt.title(my_title +'\n')
@@ -4305,7 +4861,7 @@ model_output.head()
 ##### y-model R Split 
 
 
-# In[51]:
+# In[6]:
 
 
 
@@ -4665,6 +5221,7 @@ shapiro_output
 
 
 
+#Shapiro
 
 
 # In[ ]:
@@ -4704,6 +5261,9 @@ kolmogorov_smirnov_test_normailty(predictions_comparison.enet_0_00094_p,'enet_0_
 kolmogorov_smirnov_test_normailty(predictions_comparison.linear_a,'linear_a')
 
 kolmogorov_smirnov_output
+
+
+#Kolmogorov-Smirnov
 
 
 # In[ ]:
@@ -4776,7 +5336,7 @@ t_test_output
 tag
 
 
-# In[58]:
+# In[8]:
 
 # Lets look at the distributions
 
