@@ -1349,6 +1349,9 @@ summary(fit_unlimited)
 
 plot(fit_unlimited);
 
+
+
+
 # Before drop  outliers
 #Residual standard error: 0.1354 on 53892 degrees of freedom
 #Multiple R-squared:  0.9822,	Adjusted R-squared:  0.9822 
@@ -2225,6 +2228,35 @@ summary(fit_aov_y)
 
 TukeyHSD(fit_aov_y) # where fit comes from aov()
 
+###################### **** All predictors Fit *** ##############
+
+fit_unlimited_train <- lm(lprice ~ carat+cut+color+clarity+x+y+z+table+depth, data=diamonds_train)
+
+summary(fit_unlimited)
+predicted_using_unlimited <- as.numeric(predict(fit_unlimited_train, data.frame(diamonds_test)))
+
+
+fit_unlimited_model_output <- NULL
+fit_unlimited_model_output_compare <-NULL
+
+fit_unlimited_model_predicted_lprice <- as.numeric(predict(fit_unlimited_train, data.frame(diamonds_test)))
+
+fit_unlimited_model_actual_lprice<-diamonds_test$lprice
+
+fit_unlimited_model_output_compare= data.frame(fit_unlimited_model_predicted_lprice,fit_unlimited_model_actual_lprice)
+
+
+head(fit_unlimited_model_output_compare)
+
+#### Plot ######
+
+fit_unlimited_model_output_compare$actual_price <- diamonds_test$price
+fit_unlimited_model_output_compare$predicted_price <-exp(fit_unlimited_model_predicted_lprice)
+
+
+plot(as.numeric(fit_unlimited_model_output_compare$actual_price),fit_unlimited_model_output_compare$predicted_price)
+
+plot(fit_unlimited_model_output_compare$predicted_price,as.numeric(fit_unlimited_model_output_compare$actual_price))
 
 
 ##################### y-Model prediction of lprice carat v y ################
@@ -2265,6 +2297,8 @@ plot(as.numeric(diamonds_test$lprice),as.numeric(predicted_using_y))
 
 plot(as.numeric(diamonds_test$lprice),as.numeric(predicted_using_y))
 
+plot(as.numeric(predicted_using_y),as.numeric(diamonds_test$lprice))
+
 
 
 head(lprice_predicted_using_carat)
@@ -2280,6 +2314,9 @@ plot(as.numeric(diamonds_test$lprice),as.numeric(predicted_using_y))
 ############################ y-Model predict Price Plot ##############
 
 plot(as.numeric(diamonds_test$price),as.numeric(exp(predicted_using_y)))
+
+plot(as.numeric(exp(predicted_using_y)),as.numeric(diamonds_test$price))
+
 
 summary(as.numeric(exp(predicted_using_y)))
 
@@ -2778,6 +2815,7 @@ print(model)
 
 # Tuning parameter 'intercept' was held constant at a value of TRUE
 
+summary(model)
 
 # Other useful functions
 
@@ -2817,7 +2855,7 @@ print(model)
 # 
 # Tuning parameter 'intercept' was held constant at a value of TRUE
 
-
+summary(model)
 
 warnings()
 
@@ -3416,20 +3454,115 @@ head(y_M5_weka_temp)
 
 plot(as.numeric(y_M5_weka_temp$lprice),as.numeric(y_M5_weka_temp$y_weka_test_predicted))
 
+
+#Plot actual v predicted
+plot(as.numeric(y_M5_weka_temp$y_weka_test_predicted),as.numeric(y_M5_weka_temp$lprice))
+
+
 #Try the exp 
 y_M5_weka_temp$y_predicted_price<- exp(y_M5_weka_temp$y_weka_test_predicted)
 
 
 plot(as.numeric(y_M5_weka_temp$price),as.numeric(y_M5_weka_temp$y_predicted_price))
 
+plot(as.numeric(y_M5_weka_temp$y_predicted_price),as.numeric(y_M5_weka_temp$price))
 
+
+summary(y_M5_weka_temp$y_predicted_price)
+
+
+summary(y_M5_weka_temp)
 ###### y-Model plot M5 ####
 
 plot(as.numeric(y_M5_weka_temp$y_predicted_price),as.numeric(y_M5_weka_temp$price))
 
+#plot(as.numeric(y_M5_weka_temp$residuals),y_M5_weka_temp$y_predicted_price)
+
 
 ######### Try optimise  M5 ###################
 
+
+############################# Distribution Plot y -Model Rweka Plot Comparison #########
+mod_linear_y<- NULL
+mod_rweka_y<- NULL
+
+mod_linear_y <- data.frame(y_model_output_compare$predicted_price)
+mod_rweka_y<- data.frame(y_M5_weka_temp$y_predicted_price)
+
+#Change names to match
+
+names(mod_linear_y)
+mod_linear_y
+names(mod_linear_y)[1] <- "price"
+head(mod_linear_y)
+head(mod_linear_y)
+
+names(mod_rweka_y)[1] <- "price"
+head(mod_rweka_y)
+
+#Now, combine your two dataframes into one.  First make a new column in each that will be a variable to identify where they came from later.
+mod_linear_y$model <- 'linear'
+mod_rweka_y$model <- 'rweka'
+
+head(mod_linear_y)
+
+head(mod_rweka_y)
+
+#and combine into your new data frame model_comparison
+model_comparison <- rbind(mod_linear_y, mod_rweka_y)
+str(model_comparison)
+head(model_comparison)
+tail(model_comparison)
+
+library(ggplot2)
+ggplot(model_comparison, aes(price, fill = model)) + geom_density(alpha = 0.2)
+
+
+
+############################# Distribution Plot  y - Model Rweka Plot Comparison with Actual #########
+mod_linear_y<- NULL
+mod_rweka_y<- NULL
+mod_actual<- NULL
+mod_linear_y <- data.frame(y_model_output_compare$predicted_price)
+mod_rweka_y<- data.frame(y_M5_weka_temp$y_predicted_price)
+mod_actual<-data.frame(diamonds_test$price)
+#Change names to match
+
+names(mod_linear_y)
+mod_linear_y
+names(mod_linear_y)[1] <- "price"
+head(mod_linear_y)
+head(mod_linear_y)
+
+names(mod_rweka_y)[1] <- "price"
+head(mod_rweka_y)
+
+names(mod_actual)[1]<-"price"
+
+#Now, combine your two dataframes into one.  First make a new column in each that will be a variable to identify where they came from later.
+mod_linear_y$model <- 'linear'
+mod_rweka_y$model <- 'rweka'
+mod_actual$model <- 'actual'
+
+head(mod_linear_y)
+
+head(mod_rweka_y)
+
+head(mod_actual)
+
+#and combine into your new data frame model_comparison
+model_comparison_all <- rbind(mod_linear_y, mod_rweka_y,mod_actual)
+str(model_comparison)
+head(model_comparison)
+tail(model_comparison)
+
+library(ggplot2)
+ggplot(model_comparison_all, aes(price, fill = model)) + geom_density(alpha = 0.2)
+
+
+
+
+############################################################
 
 library(caret)
 M5_Optimization = train (lprice~ cut+color+clarity+y+table+depth,data =  diamonds_train, method = 'M5')
@@ -3452,7 +3585,7 @@ M5_weka_temp_trimmed$weka_test_predicted_price<-exp(M5_weka_temp_trimmed$weka_te
 
 summary(M5_weka_temp_trimmed)
 
-plot(as.numeric(exp(M5_weka_temp_trimmed$weka_test_predicted),as.numeric(M5_weka_temp_trimmed$price))
+plot(as.numeric(exp(M5_weka_temp_trimmed$weka_test_predicted)),as.numeric(M5_weka_temp_trimmed$price))
 
 
 plot(M5_weka)
@@ -3497,6 +3630,50 @@ step(lm(diamonds$lprice~ carat+cut+color+clarity+x+y+z+table+depth, data=diamond
 
 plot(fit_weka)
 ############################## M5 Weka on y and Carat Models ##########
+####Build a Weka Model for all predictors #####
+
+library(RWeka)
+M5_weka_all = M5P (lprice~ carat + cut + clarity + color + x + y + z + depth + table, data=diamonds_train, control = Weka_control(N=F, M=10))
+all_weka_train_predicted = predict(M5_weka_all, diamonds_train)
+all_weka_test_predicted = predict(M5_weka_all, diamonds_test)
+
+
+summary(M5_weka_all)
+
+# === Summary ===
+#   
+#   Correlation coefficient                  0.9962
+# Mean absolute error                      0.0648
+# Root mean squared error                  0.0883
+# Relative absolute error                  7.3868 %
+# Root relative squared error              8.693  %
+# Total Number of Instances            37742 
+plot(M5_weka_all)
+
+all_M5_weka_temp <- data.frame(diamonds_test,all_weka_test_predicted)
+
+head(all_M5_weka_temp)
+
+#Try the exp 
+all_M5_weka_temp$all_predicted_price<- exp(as.numeric(all_M5_weka_temp$all_weka_test_predicted))
+
+
+plot(as.numeric(all_M5_weka_temp$lprice),as.numeric(all_M5_weka_temp$all_weka_test_predicted))
+
+
+#Plot actual v predicted
+plot(as.numeric(all_M5_weka_temp$all_weka_test_predicted),as.numeric(all_M5_weka_temp$lprice))
+
+plot(exp(as.numeric(all_M5_weka_temp$all_weka_test_predicted)),as.numeric(all_M5_weka_temp$price))
+
+summary(all_M5_weka_temp)
+
+
+plot((all_M5_weka_temp$all_predicted_price),as.numeric(all_M5_weka_temp$price))
+
+#plot(as.numeric(y_M5_weka_temp$residuals),y_M5_weka_temp$y_predicted_price)
+
+plot(as.numeric(all_M5_weka_temp$all_predicted_price),as.numeric(all_M5_weka_temp$price))
 
 
 ########################################################################
