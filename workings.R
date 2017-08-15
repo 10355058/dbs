@@ -3479,6 +3479,12 @@ plot(as.numeric(y_M5_weka_temp$y_predicted_price),as.numeric(y_M5_weka_temp$pric
 #plot(as.numeric(y_M5_weka_temp$residuals),y_M5_weka_temp$y_predicted_price)
 
 
+##############   M5 weka   ####################
+
+
+
+
+
 ######### Try optimise  M5 ###################
 
 
@@ -3669,12 +3675,34 @@ plot(exp(as.numeric(all_M5_weka_temp$all_weka_test_predicted)),as.numeric(all_M5
 summary(all_M5_weka_temp)
 
 
+
 plot((all_M5_weka_temp$all_predicted_price),as.numeric(all_M5_weka_temp$price))
 
 #plot(as.numeric(y_M5_weka_temp$residuals),y_M5_weka_temp$y_predicted_price)
 
 plot(as.numeric(all_M5_weka_temp$all_predicted_price),as.numeric(all_M5_weka_temp$price))
 
+summary(all_M5_weka_temp$all_predicted_price)
+
+#residuals(M5_weka_all) # residuals
+
+all_M5_weka_temp[all_M5_weka_temp$all_predicted_price>100000,]
+
+plot(as.numeric(all_M5_weka_temp$all_predicted_price),as.numeric(all_M5_weka_temp$price))
+
+
+
+all_M5_weka_temp_trimmed<-all_M5_weka_temp[all_M5_weka_temp$all_predicted_price<100000,]
+
+plot(as.numeric(all_M5_weka_temp_trimmed$all_predicted_price),as.numeric(all_M5_weka_temp_trimmed$price))
+
+#Lets look at this outlier
+all_M5_weka_temp[all_M5_weka_temp$all_predicted_price>100000,]
+
+all_M5_weka_temp[(all_M5_weka_temp$carat>0.9) &(all_M5_weka_temp$carat<2.1) & (all_M5_weka_temp$cut=='Premium') & (all_M5_weka_temp$y<6.3) & (all_M5_weka_temp$color=='H') & (all_M5_weka_temp$clarity=='SI2'),]
+
+
+all_M5_weka_temp[(all_M5_weka_temp$carat<2.1) & (all_M5_weka_temp$y<6.3) & (all_M5_weka_temp$color=='H') & (all_M5_weka_temp$clarity=='SI2'),]
 
 ########################################################################
 
@@ -4134,6 +4162,7 @@ library(rpart)
 # grow tree
 
 fit<-rpart(diamonds$ideal_flag~lprice+carat+cut+color+clarity+x+y+z+table+depth,method="anova",data=diamonds)
+fit<-rpart(diamonds$ideal_flag~lprice+carat+color+clarity+x+y+z+table+depth,method="anova",data=diamonds)
 
 
 printcp(fit) # display the results
@@ -4195,6 +4224,26 @@ text(fit, use.n=TRUE, all=TRUE, cex=.8)
 # tabulate some of the data
 #table(subset(diamonds, Koc>=190.5)$Ideal_flag)
 
+
+############### Classification Tree Rapidminer compare #######
+
+library('caret')
+library('rpart')
+#fit<-rpart(diamonds$ideal_flag~lprice+carat+cut+color+clarity+x+y+z+table+depth,method="anova",data=diamonds)
+
+formula <- as.formula(ideal_flag~lprice+carat+color+clarity+x+y+z+table+depth)
+rpart.control(maxdepth = 20,minsplit=4,minbucket=2)
+fit = rpart(formula, method="class", data=diamonds)
+
+printcp(fit) # display the results
+plotcp(fit) # visualize cross-validation results
+summary(fit) # detailed summary of splits
+
+# plot tree
+plot(fit, uniform=TRUE, main="Classification Tree for Ideal_flag")
+text(fit, use.n=TRUE, all=TRUE, cex=.8)
+text(fit, use.n=TRUE, all=TRUE, cex=1.0)
+text(fit, use.n=TRUE, all=TRUE, cex=.6)
 ############### Tree package #############
 # TREE package
 library(tree)
@@ -4221,24 +4270,184 @@ fit <- ctree(price~color+clarity+y+table+depth,
 plot(fit, main="Conditional Inference Tree for Ideal_flag y-Model")
 
 
-
-
-
+fit <- ctree(ideal_flag~lprice+carat+color+clarity+x+y+z+table+depth,data=diamonds)
+plot(fit, main="Conditional Inference Tree for Ideal_flag All predictors")
+plot(fit)
+summary(fit)
+text(fit, use.n=TRUE, all=TRUE, cex=1.0)
+text(fit, use.n=TRUE, all=TRUE, cex=0.7)
 ############### Conditional Inference Tree ######
 # PARTY package
 library(party)
 
-ct = ctree(formla, data = diamonds)
+ct = ctree(formula, data = diamonds)
 plot(ct, main="Conditional Inference Tree")
 
 #Table of prediction errors
-table(predict(ct), raw$Ideal_flag)
+table(predict(ct), diamonds$Ideal_flag)
 
 # Estimated class probabilities
 tr.pred = predict(ct, newdata=diamonds, type="prob")
 
 
+############################## #########################
+
+library(party)
+
+(ct = ctree(formula, data = diamonds))
+plot(ct, main="Conditional Inference Tree")
+
+#Table of prediction errors
+table(predict(ct), raw$Metal)
+
+# Estimated class probabilities
+tr.pred = predict(ct, newdata=raw, type="prob")
+
+
+################ ############
+library(maptree)
+library(cluster)
+draw.tree( clip.rpart (rpart ( raw), best=7),
+           nodeinfo=TRUE, units="species",
+           cases="cells", digits=0)
+a = agnes ( raw[2:4], method="ward" )
+names(a)
+a$diss
+b = kgs (a, a$diss, maxclust=20)
+
+plot(names(b), b, xlab="# clusters", ylab="penalty", type="n")
+xloc = names(b)[b==min(b)]
+yloc = min(b)
+ngon(c(xloc,yloc+.75,10, "dark green"), angle=180, n=3)
+apply(cbind(names(b), b, 3, 'blue'), 1, ngon, 4) # cbind(x,y,size,color)
+
+
+############ EVTREE (Evoluationary Learning) ######
+## EVTREE (Evoluationary Learning)
+library(evtree)
+formula <- as.formula(ideal_flag~lprice+carat+color+clarity+x+y+z+table+depth)
+
+ev.raw = evtree(formula, data=diamonds)
+plot(ev.raw)
+table(predict(ev.raw), raw$ideal_flag)
+1-mean(predict(ev.raw) == raw$ideal_flag)
+
+
+# PARTY package
+library(party)
+
+(ct = ctree(formula, data = diamonds))
+plot(ct, main="Conditional Inference Tree")
+
+#Table of prediction errors
+table(predict(ct), raw$Metal)
+
+# Estimated class probabilities
+tr.pred = predict(ct, newdata=raw, type="prob")
+
+
+############# 
+
+## randomForest
+library(randomForest)
+fit.rf = randomForest(formula, data=diamonds)
+print(fit.rf)
+importance(fit.rf)
+plot(fit.rf)
+plot( importance(fit.rf), lty=2, pch=16)
+lines(importance(fit.rf))
+imp = importance(fit.rf)
+impvar = rownames(imp)[order(imp[, 1], decreasing=TRUE)]
+op = par(mfrow=c(1, 3))
+for (i in seq_along(impvar)) {
+  partialPlot(fit.rf, raw, impvar[i], xlab=impvar[i],
+              main=paste("Partial Dependence on", impvar[i]),
+              ylim=c(0, 1))
+}
+####################### kernlab 
+
+library(kernlab)
+
+model.ksvm = ksvm(ideal_flag ~ lprice + carat + color + clarity + x + y + z + table + 
+                    depth, data = diamonds, type="C-svc")
+plot(model.ksvm, data=diamonds)
+
+
+
+######################### Simle SVM ###########
+library("e1071")
+
+svm_diamonds_x <- subset(diamonds, select=-c(cut,price,ideal_flag))
+svm_diamonds_y <- diamonds$ideal_flag
+
+#Create SVM Model and show summary
+
+svm_model <- svm(Species ~ ., data=iris)
+summary(svm_model)
+
+
+
+#Create SVM Model and show summary
+
+svm_model1 <- svm(svm_diamonds_x,svm_diamonds_y)
+summary(svm_model1)
+
+
+
+
+####################################### SVM RapidMiner comparison #######################################
+library("e1071")
+
+diamonds_matrix <- model.matrix( ~ ideal_flag
+                                 + carat 
+                                 + color 
+                                 + clarity 
+                                 + depth 
+                                 + table
+                                 + x
+                                 +y
+                                 +z
+                                 +lprice  , data = diamonds)
+
+diamonds_data=as.data.frame((diamonds_matrix))
+
+str(diamonds_data)
+
+#So lets take less than half the data say 10000 rows
+
+library(dplyr)
+diamond_sample <- sample_n(diamonds_data, 10000)
+
+#svm_model<-svm(diamonds$ideal_flagTrue~.,data=diamonds_data)
+
+
+carat + colorE+colorF+colorG+colorH+colorI+colorJ+clarityIF
++claritySI1+claritySI2+clarityVS1+clarityVS2   
++clarityVVS1+clarityVVS2+depth+table+x+y+z             
+lprice
+
+svm_model<-svm(ideal_flagTrue~.,data=diamond_sample)
+
+
+#put the 20000 sample back in diamonds data
+diamonds_data=diamond_sample
+
+
+
+
+
+library(e1071)
+
+diamonds_data<-subset(diamonds, select=-c(price,ideal_flag))
+
+summary(diamonds_data)
+
+svm_model<-svm(diamonds$ideal_flag~.,data=diamonds_data)
+
+
 ####################################### SVM #######################################
+
+
 
 
 
@@ -4312,6 +4521,82 @@ quit("yes")
 
 
 
+###### RapidMiner lprice Create a Diamonds Matrix to expand Dummy variable for factors ####
+
+names(diamonds)
+
+carat + cut + color + clarity + depth + table+ x+y+z+lprice
+
+#Create a Diamonds Matrix to expand Dummy variable for factors
+
+diamonds_matrix <- model.matrix( ~ carat 
+                                 + color 
+                                 + clarity 
+                                 + depth 
+                                 + table
+                                 + x
+                                 +y
+                                 +z
+                                 +lprice , data = diamonds)
+
+diamonds_data=as.data.frame((diamonds_matrix))
+
+str(diamonds_data)
+
+#So lets take less than half the data say 10000 rows
+
+library(dplyr)
+diamond_sample <- sample_n(diamonds_data, 10000)
+
+#put the 20000 sample back in diamonds data
+diamonds_data=diamond_sample
+
+svm_model<-svm(ideal_flag ~carat 
+               + color 
+               + clarity 
+               + depth 
+               + table
+               + x
+               +y
+               +z
+               +lprice,t,data=diamonds_data)
+
+svm_model<-svm(ideal_flag ~carat 
+               + color 
+               + clarity 
+               + depth 
+               + table
+               + x
+               +y
+               +z
+               +lprice,type =  "C" ,data=diamonds)
+
+svm_model<-svm(diamonds_data$lprice~.,data=diamonds_data)
+
+
+plot(svm_model,diamonds_data)
+
+
+
+mins<- apply(diamonds_data,2,min)
+maxs<- apply(diamonds_data,2,max)
+
+
+diamonds_data.scaled <- as.data.frame(scale(diamonds_data, center = mins, scale = maxs - mins))
+diamonds_data.index<-sample(1:nrow(diamonds_data),round(0.66*nrow(diamonds_data)))
+diamonds_data.scaled$Type<-paste("T",diamonds_data$Type,sep="")
+
+model <- svm(diamonds_data.scaled$Type~., type = "C-classification", data=diamonds_data.scaled[,-10] )
+
+diamonds_data.svm.pred<-predict(model,diamonds_data.scaled[-diamonds_data.index,-10])
+
+table(diamonds_data.svm.pred, diamonds_data[-diamonds_data.index,10])
+
+quit("yes")
+
+
+
+
 ###### lprice Create a Diamonds Matrix to expand Dummy variable for factors ####
 
 names(diamonds)
@@ -4342,6 +4627,8 @@ diamond_sample <- sample_n(diamonds_data, 10000)
 
 #put the 20000 sample back in diamonds data
 diamonds_data=diamond_sample
+
+############################## 
 
 ############################## 
 ###### price Create a Diamonds Matrix to expand Dummy variable for factors ####
@@ -4571,6 +4858,9 @@ plot(fit_mod_clust ,main="Model Based Clustering") # plot results
 summary(fit_mod_clust ) # display the best model 
 
 ######################################## HClust #################################
+
+
+diamonds_scaled <- scale(as.data.frame(diamonds_data)) # standardize variables
 
 
 clusters <- hclust(dist(diamonds_scaled))
