@@ -3,7 +3,7 @@
 
 # # Quick data modification if we just want to jump to the Models with the appropriate data structure
 
-# In[37]:
+# In[1]:
 
 #Note: Attribution for code samples/credit to be added as we go.
 # many based on code sample for ployly, kaggle, sklearn
@@ -57,7 +57,7 @@ diamonds['ideal_flag'] = diamonds['cut'].apply(lambda x: 'True' if x == 'Ideal' 
 ### Train/Test split
 
 
-# In[38]:
+# In[2]:
 
 
 
@@ -583,13 +583,13 @@ diamonds.index = range(1,len(diamonds) + 1)
 #### add new column based on Log of the price 
 
 
-# In[29]:
+# In[15]:
 
 plt.figure(figsize=(12,10))
 plt.subplot(3,2,1)
 sns.distplot(diamonds.price, kde=False, color="b") #Bins based on scale so different shape if subset
 plt.subplot(3,2,2)
-sns.distplot(np.log10(diamonds.price), kde=False, color="b",axlabel='Log10 of Price')
+sns.distplot(np.log(diamonds.price), kde=False, color="b",axlabel=' Natural Log of Price')
 
 plt.show()
 # Release memory.
@@ -4825,7 +4825,7 @@ test
 
 # ### Try out Regression with our R training dataset
 
-# In[23]:
+# In[3]:
 
 #Read in our Data
 diamonds_train_R = pd.read_csv("diamonds_train_R.csv") #load the dataset
@@ -5085,7 +5085,7 @@ model_output.head()
 
 # ### Lets try all predictors on the R-split data
 
-# In[24]:
+# In[6]:
 
 
 
@@ -5278,7 +5278,7 @@ model_analysis(enet,tag,model_r2_score)
 
 print('\n'*1)
 
-print ('Model formula : lprice ~ y + clarity + color + depth + cut + table')
+print ('Model formula : lprice ~ carat + cut + clarity + color + x + y + z + depth + table')
 
 
 model_output.head()
@@ -5686,7 +5686,7 @@ model_output.head()
 ##### y-model R Split 
 
 
-# In[85]:
+# In[8]:
 
 
 
@@ -5705,17 +5705,50 @@ def model_analysis (model,tag,model_r2_score,tag_code):
                         '{0:.6f}'.format(model.score(train_X, train_y)),np.sqrt(metrics.mean_squared_error(test_y,predictions)),(mae),mse)
     
     
-    plt.figure(figsize=(12, 6))
-    plt.subplot(1, 2, 1)
+#     plt.figure(figsize=(12, 6))
+#     plt.subplot(1, 2, 1)
+#     my_title=('Prediction for Model: %s'%(model))
+#     plt.title(my_title +'\n')
+#     #plt.title('Prediction')
+#     plt.scatter(test_y, pred_test, 
+#          label='Prediction Accuracy')
+#     plt.legend(loc='upper left')
+#     #plt.xlabel('Actual')
+#     #plt.ylabel('Predicted')
+
+#     plt.show()
+
+#     # Release memory.
+#     plt.clf()
+#     plt.close()
+
+    #plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(6, 4))
+    #plt.subplot(1, 2, 1)
     my_title=('Prediction for Model: %s'%(model))
     plt.title(my_title +'\n')
     #plt.title('Prediction')
-    plt.scatter(test_y, pred_test, 
+    #plt.scatter(test_y, pred_test, 
+         #label='Prediction Accuracy')
+    plt.scatter(pred_test, test_y , 
          label='Prediction Accuracy')
     plt.legend(loc='upper left')
     #plt.xlabel('Actual')
     #plt.ylabel('Predicted')
 
+    plt.show()
+    
+    plt.figure(figsize=(6, 4))
+    #plt.subplot(1, 2, 2)
+    my_title=('Price Prediction for Model: %s'%(model))
+    plt.title(my_title +'\n')
+    #plt.title('Prediction')
+    #plt.scatter(np.exp(test_y), np.exp(pred_test), 
+         #label='Prediction Accuracy')
+    plt.scatter(np.exp(pred_test),np.exp(test_y), 
+         label='Price Prediction')
+    plt.legend(loc='lower right')
+    
     plt.show()
 
     # Release memory.
@@ -5773,7 +5806,7 @@ mae_list = []
 output_columns = ['Model','r^2 on test data', 'Model Score on Training Data','Variance score','Root Mean Squared Error','Mean Absolute Error','Mean Squared Error']
 model_output = pd.DataFrame(columns=output_columns)
 
-predictions_comparison =pd.DataFrame()
+predictions_comparison = pd.DataFrame()
 
 # print(model_output.head())
 
@@ -6156,6 +6189,80 @@ t_test_output
 #If the p-value is smaller than the threshold, e.g. 1%, 5% or 10%, then we reject the null hypothesis of equal averages.
 
 
+# In[ ]:
+
+### Try this with the price data
+
+
+# In[9]:
+
+## Now test if distributions are different
+
+# test
+
+from scipy import stats
+
+
+def t_test_compare(data,tag_code,flag_test) :
+    if flag_test == 0:
+        compare_test_results = stats.ttest_ind(np.exp(data),np.exp(predictions_comparison.linear_a))
+        test_name = 'Student’s t-test'
+    else:
+        compare_test_results = stats.ttest_ind(np.exp(data),np.exp(predictions_comparison.linear_a), equal_var = False)
+        test_name = 'Welch’s t-test'
+    t_test_output.loc[t_test_output.shape[0]] = (tag_code,compare_test_results[0],compare_test_results[1],test_name)
+    
+    
+t_test_columns = ['Model', 'Test Statistic', 'p-value', ' Test']
+t_test_output = pd.DataFrame(columns=t_test_columns)
+    
+    
+#['Model', 'DF', 'Test Statistic', 'p-value']
+t_test_compare(predictions_comparison.linear_p,'linear_p',0)
+t_test_compare(predictions_comparison.linear_p,'linear_p',1)
+
+t_test_compare(predictions_comparison.ridge_p,'ridge_p',0)
+t_test_compare(predictions_comparison.ridge_p,'ridge_p',1)
+
+t_test_compare(predictions_comparison.lasso_0_1_p,'lasso_0_1_p',0)
+t_test_compare(predictions_comparison.lasso_0_1_p,'lasso_0_1_p',1)
+
+t_test_compare(predictions_comparison.lasso_0_0001_p,'lasso_0_0001_p',0)
+t_test_compare(predictions_comparison.lasso_0_0001_p,'lasso_0_0001_p',1)
+
+t_test_compare(predictions_comparison.lasso_0_00047_p,'lasso_0_00047_p',0)
+t_test_compare(predictions_comparison.lasso_0_00047_p,'lasso_0_00047_p',1)
+
+t_test_compare(predictions_comparison.enet_0_1_p,'enet_0_1_p',0)
+t_test_compare(predictions_comparison.enet_0_1_p,'enet_0_1_p',1)
+
+t_test_compare(predictions_comparison.enet_0_0001_p,'enet_0_0001_p',0)
+t_test_compare(predictions_comparison.enet_0_0001_p,'enet_0_0001_p',1)
+
+t_test_compare(predictions_comparison.enet_0_00094_p,'enet_0_00094_p',0)
+t_test_compare(predictions_comparison.enet_0_00094_p,'enet_0_00094_p',1)
+
+#t_test_compare(predictions_comparison.linear_a,'linear_a')
+
+t_test_output
+
+#Test with sample with identical means:
+
+#If we observe a large p-value, for example larger than 0.05 or 0.1, 
+#then we cannot reject the null hypothesis of identical average scores. 
+#If the p-value is smaller than the threshold, e.g. 1%, 5% or 10%, then we reject the null hypothesis of equal averages.
+
+
+# In[13]:
+
+np.exp(predictions_comparison.linear_p).describe()
+
+
+# In[14]:
+
+np.exp(predictions_comparison.linear_a).describe()
+
+
 # In[82]:
 
 tag
@@ -6190,9 +6297,9 @@ plt.close()
 
 
 
-# #### Let's try carat as out single value from out possible quatet of Multicollinear predictors
+# ### Let's try carat as out single value from out possible quatet of Multicollinear predictors
 
-# In[27]:
+# In[4]:
 
 
 
@@ -6211,17 +6318,51 @@ def model_analysis (model,tag,model_r2_score):
                         model.score(test_X, test_y),np.sqrt(metrics.mean_squared_error(test_y,predictions)),(mae),mse)
     
     
-    plt.figure(figsize=(12, 6))
-    plt.subplot(1, 2, 1)
+#     plt.figure(figsize=(12, 6))
+#     plt.subplot(1, 2, 1)
+#     my_title=('Prediction for Model: %s'%(model))
+#     plt.title(my_title +'\n')
+#     #plt.title('Prediction')
+#     plt.scatter(test_y, pred_test, 
+#          label='Prediction Accuracy')
+#     plt.legend(loc='upper left')
+#     #plt.xlabel('Actual')
+#     #plt.ylabel('Predicted')
+
+#     plt.show()
+
+#     # Release memory.
+#     plt.clf()
+#     plt.close()
+
+
+    #plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(6, 4))
+    #plt.subplot(1, 2, 1)
     my_title=('Prediction for Model: %s'%(model))
     plt.title(my_title +'\n')
     #plt.title('Prediction')
-    plt.scatter(test_y, pred_test, 
+    #plt.scatter(test_y, pred_test, 
+         #label='Prediction Accuracy')
+    plt.scatter(pred_test, test_y , 
          label='Prediction Accuracy')
     plt.legend(loc='upper left')
     #plt.xlabel('Actual')
     #plt.ylabel('Predicted')
 
+    plt.show()
+    
+    plt.figure(figsize=(6, 4))
+    #plt.subplot(1, 2, 2)
+    my_title=('Price Prediction for Model: %s'%(model))
+    plt.title(my_title +'\n')
+    #plt.title('Prediction')
+    #plt.scatter(np.exp(test_y), np.exp(pred_test), 
+         #label='Prediction Accuracy')
+    plt.scatter(np.exp(pred_test),np.exp(test_y), 
+         label='Price Prediction')
+    plt.legend(loc='lower right')
+    
     plt.show()
 
     # Release memory.
@@ -6376,7 +6517,9 @@ model_output.head()
 
 
 
-# In[92]:
+# ### Carat Model using R-split data
+
+# In[5]:
 
 
 
@@ -6395,22 +6538,59 @@ def model_analysis (model,tag,model_r2_score):
                         '{0:.6f}'.format(model.score(train_X, train_y)),np.sqrt(metrics.mean_squared_error(test_y,predictions)),(mae),mse)
     
     
-    plt.figure(figsize=(12, 6))
-    plt.subplot(1, 2, 1)
+#     plt.figure(figsize=(12, 6))
+#     plt.subplot(1, 2, 1)
+#     my_title=('Prediction for Model: %s'%(model))
+#     plt.title(my_title +'\n')
+#     #plt.title('Prediction')
+#     plt.scatter(test_y, pred_test, 
+#          label='Prediction Accuracy')
+#     plt.legend(loc='upper left')
+#     #plt.xlabel('Actual')
+#     #plt.ylabel('Predicted')
+
+#     plt.show()
+
+#     # Release memory.
+#     plt.clf()
+#     plt.close()
+    
+    
+    #plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(6, 4))
+    #plt.subplot(1, 2, 1)
     my_title=('Prediction for Model: %s'%(model))
     plt.title(my_title +'\n')
     #plt.title('Prediction')
-    plt.scatter(test_y, pred_test, 
+    #plt.scatter(test_y, pred_test, 
+         #label='Prediction Accuracy')
+    plt.scatter(pred_test, test_y , 
          label='Prediction Accuracy')
     plt.legend(loc='upper left')
     #plt.xlabel('Actual')
     #plt.ylabel('Predicted')
 
     plt.show()
+    
+    plt.figure(figsize=(6, 4))
+    #plt.subplot(1, 2, 2)
+    my_title=('Price Prediction for Model: %s'%(model))
+    plt.title(my_title +'\n')
+    #plt.title('Prediction')
+    #plt.scatter(np.exp(test_y), np.exp(pred_test), 
+         #label='Prediction Accuracy')
+    plt.scatter(np.exp(pred_test),np.exp(test_y), 
+         label='Price Prediction')
+    plt.legend(loc='lower right')
+    
+    plt.show()
 
     # Release memory.
     plt.clf()
     plt.close()
+    
+    
+    
     
     #Result obtained after running the algo. Comment the below two lines if you want to run the algo
     mae_list.append(mae)
@@ -9978,7 +10158,168 @@ print('The accuracy of the KNN is',metrics.accuracy_score(prediction,test_y))
 
 # In[ ]:
 
+##Try with R-split data
 
+
+# In[4]:
+
+diamonds_train_R.head()
+
+
+# In[10]:
+
+train_X.shape,train_y.shape,test_X.shape,test_y.shape
+
+
+# In[12]:
+
+# importing alll the necessary packages to use the various classification algorithms
+from sklearn.linear_model import LogisticRegression  # for Logistic Regression algorithm
+from sklearn.cross_validation import train_test_split #to split the dataset for training and testing
+from sklearn.neighbors import KNeighborsClassifier  # for K nearest neighbours
+from sklearn import svm  #for Support Vector Machine (SVM) Algorithm
+from sklearn import metrics #for checking the model accuracy
+from sklearn.tree import DecisionTreeClassifier #for using Decision Tree Algoithm
+
+seed=(1976)
+
+from sklearn import svm, datasets
+from sklearn import metrics
+
+
+# train_X=diamonds_train_R[['y','x','z','carat','clarity', 'color', 'depth', 'table','lprice']]# taking the training data features
+# train_y=diamonds_train_R[['ideal_flag']] # output of our training data
+# test_X =diamonds_test_R[['y','x','z','carat','clarity', 'color', 'depth', 'table','lprice']] # taking test data features
+# test_y=diamonds_test_R[['ideal_flag']]  #output value of test data
+
+#We have 'cut' included but the target is ideal_flag...a predictor which define the ideal_flag
+#We have dropped 'cut' as the target is ideal_flag which is based on cut value
+classification_price_train_X = diamonds_train_R[['carat','clarity','color','x','y','z','depth','table','lprice']]# taking the training data features
+classification_price_train_y = diamonds_train_R.ideal_flag# output of our training data
+classification_price_test_X = diamonds_test_R[['carat','clarity','color','x','y','z','depth','table','lprice']] # taking test data features
+classification_price_test_y = diamonds_test_R.ideal_flag   #output value of test data
+
+
+train_X = classification_price_train_X
+train_y = classification_price_train_y
+test_X = classification_price_test_X
+test_y = classification_price_test_y
+
+#SVM 
+model = svm.SVC() #select the algorithm
+model.fit(train_X,train_y) # we train the algorithm with the training data and the training output
+prediction=model.predict(test_X) #now we pass the testing data to the trained algorithm
+
+print('The accuracy of the SVM is:',metrics.accuracy_score(prediction,test_y))#now we check the accuracy of the algorithm. 
+#we pass the predicted output by the model and the actual output
+
+#SVM is giving very good accuracy . We will continue to check the accuracy for different models.
+
+#Now we will follow the same steps as above for training various machine learning algorithms.
+
+
+print('\n'*1)
+
+#Logistic Regression
+model = LogisticRegression()
+model.fit(train_X,train_y)
+prediction=model.predict(test_X)
+print('The accuracy of the Logistic Regression is',metrics.accuracy_score(prediction,test_y))
+
+print('\n'*1)
+
+#Decision Tree
+
+model=DecisionTreeClassifier()
+model.fit(train_X,train_y)
+prediction=model.predict(test_X)
+print('The accuracy of the Decision Tree is',metrics.accuracy_score(prediction,test_y))
+
+print('\n'*1)
+
+#K-Nearest Neighbours
+model=KNeighborsClassifier(n_neighbors=2) #n_neighbours=2 means we are trying to split them into 2 clusters
+model.fit(train_X,train_y)
+prediction=model.predict(test_X)
+print('The accuracy of the KNN is',metrics.accuracy_score(prediction,test_y))
+
+
+# In[ ]:
+
+#Use RapidMiner settings
+
+
+# In[15]:
+
+# importing alll the necessary packages to use the various classification algorithms
+from sklearn.linear_model import LogisticRegression  # for Logistic Regression algorithm
+from sklearn.cross_validation import train_test_split #to split the dataset for training and testing
+from sklearn.neighbors import KNeighborsClassifier  # for K nearest neighbours
+from sklearn import svm  #for Support Vector Machine (SVM) Algorithm
+from sklearn import metrics #for checking the model accuracy
+from sklearn.tree import DecisionTreeClassifier #for using Decision Tree Algoithm
+
+seed=(1976)
+
+from sklearn import svm, datasets
+from sklearn import metrics
+
+
+# train_X=diamonds_train_R[['y','x','z','carat','clarity', 'color', 'depth', 'table','lprice']]# taking the training data features
+# train_y=diamonds_train_R[['ideal_flag']] # output of our training data
+# test_X =diamonds_test_R[['y','x','z','carat','clarity', 'color', 'depth', 'table','lprice']] # taking test data features
+# test_y=diamonds_test_R[['ideal_flag']]  #output value of test data
+
+#We have 'cut' included but the target is ideal_flag...a predictor which define the ideal_flag
+#We have dropped 'cut' as the target is ideal_flag which is based on cut value
+classification_price_train_X = diamonds_train_R[['carat','clarity','color','x','y','z','depth','table','lprice']]# taking the training data features
+classification_price_train_y = diamonds_train_R.ideal_flag# output of our training data
+classification_price_test_X = diamonds_test_R[['carat','clarity','color','x','y','z','depth','table','lprice']] # taking test data features
+classification_price_test_y = diamonds_test_R.ideal_flag   #output value of test data
+
+
+train_X = classification_price_train_X
+train_y = classification_price_train_y
+test_X = classification_price_test_X
+test_y = classification_price_test_y
+
+#SVM 
+model = svm.SVC(C=0.1) #select the algorithm
+model.fit(train_X,train_y) # we train the algorithm with the training data and the training output
+prediction=model.predict(test_X) #now we pass the testing data to the trained algorithm
+
+print('The accuracy of the SVM is:',metrics.accuracy_score(prediction,test_y))#now we check the accuracy of the algorithm. 
+#we pass the predicted output by the model and the actual output
+
+#SVM is giving very good accuracy . We will continue to check the accuracy for different models.
+
+#Now we will follow the same steps as above for training various machine learning algorithms.
+
+
+print('\n'*1)
+
+#Logistic Regression
+model = LogisticRegression()
+model.fit(train_X,train_y)
+prediction=model.predict(test_X)
+print('The accuracy of the Logistic Regression is',metrics.accuracy_score(prediction,test_y))
+
+print('\n'*1)
+
+#Decision Tree
+
+model=DecisionTreeClassifier(max_depth=20,min_samples_split = 4,min_samples_leaf = 2)
+model.fit(train_X,train_y)
+prediction=model.predict(test_X)
+print('The accuracy of the Decision Tree is',metrics.accuracy_score(prediction,test_y))
+
+print('\n'*1)
+
+#K-Nearest Neighbours #leaf_size = 30
+model=KNeighborsClassifier(n_neighbors=3) #n_neighbours=3 means we are trying to split them into 3 clusters
+model.fit(train_X,train_y)
+prediction=model.predict(test_X)
+print('The accuracy of the KNN is',metrics.accuracy_score(prediction,test_y))
 
 
 # In[65]:
