@@ -9115,6 +9115,1096 @@ X.shape,y.shape
 X.shape,y.shape,sfm,sfm.transform(X).shape[0],sfm.transform(X).shape[1],n_features
 
 
+# In[ ]:
+
+
+
+
+# In[ ]:
+
+#Ward Hierarchical Cluster analysis
+
+
+# In[ ]:
+
+# Author : Vincent Michel, 2010
+#          Alexandre Gramfort, 2011
+# License: BSD 3 clause
+
+print(__doc__)
+
+import time as time
+
+import numpy as np
+import scipy as sp
+
+import matplotlib.pyplot as plt
+
+from sklearn.feature_extraction.image import grid_to_graph
+from sklearn.cluster import AgglomerativeClustering
+
+
+# #############################################################################
+# Generate data
+try:  # SciPy >= 0.16 have face in misc
+    from scipy.misc import face
+    face = face(gray=True)
+except ImportError:
+    face = sp.face(gray=True)
+
+# Resize it to 10% of the original size to speed up the processing
+face = sp.misc.imresize(face, 0.10) / 255.
+
+X = np.reshape(face, (-1, 1))
+
+# #############################################################################
+# Define the structure A of the data. Pixels connected to their neighbors.
+connectivity = grid_to_graph(*face.shape)
+
+# #############################################################################
+# Compute clustering
+print("Compute structured hierarchical clustering...")
+st = time.time()
+n_clusters = 15  # number of regions
+ward = AgglomerativeClustering(n_clusters=n_clusters, linkage='ward',
+                               connectivity=connectivity)
+ward.fit(X)
+label = np.reshape(ward.labels_, face.shape)
+print("Elapsed time: ", time.time() - st)
+print("Number of pixels: ", label.size)
+print("Number of clusters: ", np.unique(label).size)
+
+# #############################################################################
+# Plot the results on an image
+plt.figure(figsize=(5, 5))
+plt.imshow(face, cmap=plt.cm.gray)
+for l in range(n_clusters):
+    plt.contour(label == l, contours=1,
+                colors=[plt.cm.spectral(l / float(n_clusters)), ])
+plt.xticks(())
+plt.yticks(())
+plt.show()
+
+
+# In[ ]:
+
+
+
+
+# In[65]:
+
+# Author : Vincent Michel, 2010
+#          Alexandre Gramfort, 2011
+# License: BSD 3 clause
+
+print(__doc__)
+
+import time as time
+
+import numpy as np
+import scipy as sp
+
+import matplotlib.pyplot as plt
+
+from sklearn.feature_extraction.image import grid_to_graph
+from sklearn.cluster import AgglomerativeClustering
+
+
+# # #############################################################################
+# # Generate data
+# try:  # SciPy >= 0.16 have face in misc
+#     from scipy.misc import face
+#     face = face(gray=True)
+# except ImportError:
+#     face = sp.face(gray=True)
+
+# Resize it to 10% of the original size to speed up the processing
+#face = sp.misc.imresize(face, 0.10) / 255.
+
+#X = np.reshape(face, (-1, 1))
+
+X = np.array(diamonds_normalized)
+
+# #############################################################################
+# Define the structure A of the data. Pixels connected to their neighbors.
+#connectivity = grid_to_graph(*face.shape)
+
+# #############################################################################
+# Compute clustering
+print("Compute structured hierarchical clustering...")
+st = time.time()
+n_clusters = 4  # number of regions
+# ward = AgglomerativeClustering(n_clusters=n_clusters, linkage='ward',
+#                                connectivity=connectivity)
+ward = AgglomerativeClustering(n_clusters=n_clusters, linkage='ward')
+ward.fit(X)
+#label = np.reshape(ward.labels_, face.shape)
+
+print("Elapsed time: ", time.time() - st)
+print("Number of pixels: ", label.size)
+print("Number of clusters: ", np.unique(label).size)
+
+# #############################################################################
+# Plot the results on an image
+# plt.figure(figsize=(5, 5))
+# plt.imshow(face, cmap=plt.cm.gray)
+# for l in range(n_clusters):
+#     plt.contour(label == l, contours=1,
+#                 colors=[plt.cm.spectral(l / float(n_clusters)), ])
+# plt.xticks(())
+# plt.yticks(())
+# plt.show()
+
+
+# In[64]:
+
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import style
+style.use("ggplot")
+from sklearn.cluster import KMeans
+
+
+kmeans = KMeans(n_clusters=2)
+kmeans.fit(diamonds_normalized)
+
+centroids = kmeans.cluster_centers_
+labels = kmeans.labels_
+
+#print(centroids)
+#print(labels)
+
+
+colors = ["g.","r.","c.","y."]
+
+for i in range(len(X)):
+    #print("coordinate:",X[i], "label:", labels[i])
+    plt.plot(X[i][0], X[i][1], colors[labels[i]], markersize = 10)
+
+
+plt.scatter(centroids[:, 0],centroids[:, 1], marker = "x", s=150, linewidths = 5, zorder = 10)
+
+plt.show()
+
+
+# In[4]:
+
+
+diamonds_test_R.head()
+
+
+
+
+# In[21]:
+
+
+diamonds_test_R_cluster = diamonds_train_R  
+
+
+# In[28]:
+
+diamonds_test_R_cluster['ideal_flag_boolean'] = diamonds_test_R_cluster['cut'].apply(lambda x: 1 if x == 2 else 0)
+#diamonds['ideal_flag'] = diamonds['cut'].apply(lambda x: 'True' if x == 'Ideal' else 'False')
+
+
+# In[34]:
+
+diamonds_test_R_cluster_trimmed = diamonds_test_R_cluster[['carat','color','clarity','depth','table','price','x','y','z','ideal_flag_boolean']]
+
+
+# In[35]:
+
+diamonds_test_R_cluster_trimmed.head(20)
+
+
+# In[29]:
+
+diamonds_test_R_cluster.head(20)
+
+
+# In[56]:
+
+# Do the actual clustering
+from sklearn import metrics
+from sklearn.cluster import KMeans, MiniBatchKMeans
+import sys
+from time import time
+
+
+# if opts.minibatch:
+#     km = MiniBatchKMeans(n_clusters=true_k, init='k-means++', n_init=1,
+#                          init_size=1000, batch_size=1000, verbose=opts.verbose)
+# else:
+#     km = KMeans(n_clusters=true_k, init='k-means++', max_iter=100, n_init=1,
+#                 verbose=opts.verbose)
+
+true_k = 5   
+    
+km = KMeans(n_clusters=true_k, init='k-means++', max_iter=100, n_init=1)
+    
+print("Clustering sparse data with %s" % km)
+t0 = time()
+km.fit(diamonds_normalized)
+print("done in %0.3fs" % (time() - t0))
+print()
+
+print("Homogeneity: %0.3f" % metrics.homogeneity_score(labels, km.labels_))
+print("Completeness: %0.3f" % metrics.completeness_score(labels, km.labels_))
+print("V-measure: %0.3f" % metrics.v_measure_score(labels, km.labels_))
+print("Adjusted Rand-Index: %.3f"
+      % metrics.adjusted_rand_score(labels, km.labels_))
+print("Silhouette Coefficient: %0.3f"
+      % metrics.silhouette_score(diamonds_normalized, km.labels_, sample_size=1000))
+
+print()
+
+
+# In[38]:
+
+from sklearn.cluster import KMeans
+
+from sklearn import metrics
+import pandas as pd
+from sklearn import preprocessing
+
+
+
+
+def compare_k_means(k_list,data):
+    ## Run clustering with different k and check the metrics
+    for k in k_list:
+        clusterer = KMeans(n_clusters=k, n_jobs=4)
+        clusterer.fit(data)
+        ## The higher (up to 1) the better
+#         print("Silhouette Coefficient for k == %s: %s" % (
+#         k, round(metrics.silhouette_score(data, clusterer.labels_), 4)))
+#         ## The higher (up to 1) the better
+#         print("Homogeneity score for k == %s: %s" % (
+#         k, round(metrics.homogeneity_score(data, clusterer.labels_),4)))
+        print("------------------------")
+
+        
+diamonds_test_R_cluster = diamonds_test_R   
+## Add a flag for Ideal cut only - Ideal= True, all others = False
+diamonds_test_R_cluster['ideal_flag_boolean'] = diamonds_test_R_cluster['cut'].apply(lambda x: 1 if x == 2 else 0)
+#diamonds['ideal_flag'] = diamonds['cut'].apply(lambda x: 'True' if x == 'Ideal' else 'False')
+#diamonds_test_R_cluster['ideal_flag_boolean'] = diamonds[diamonds_test_R_cluster].apply(lambda x: 1 if x == 'True' else 0)
+diamonds_test_R_cluster_trimmed = diamonds_test_R_cluster[['carat','color','clarity','depth','table','price','x','y','z','ideal_flag_boolean']]
+
+min_max_scaler = preprocessing.MinMaxScaler()
+np_scaled = min_max_scaler.fit_transform(diamonds_test_R_cluster_trimmed)
+diamonds_normalized = pd.DataFrame(np_scaled)
+diamonds_normalized        
+        
+n_clusters = [2,3,4,5,6]#7,8,10]     
+
+n_clusters = [4]#7,8,10] 
+
+compare_k_means(n_clusters,diamonds_normalized)
+
+
+# In[54]:
+
+from sklearn.cluster import KMeans
+import numpy as np
+X = np.array(diamonds_normalized)
+kmeans = KMeans(n_clusters=2, random_state=0).fit(X)
+#kmeans.labels_
+#array([0, 0, 0, 1, 1, 1], dtype=int32)
+#kmeans.predict([[0, 0], [4, 4]])
+#array([0, 1], dtype=int32)
+#kmeans.cluster_centers_
+#array([[ 1.,  2.],
+       #[ 4.,  2.]])
+    
+    
+
+
+# In[55]:
+
+kmeans
+
+
+# In[53]:
+
+#based on http://glowingpython.blogspot.ie/2012/04/k-means-clustering-with-scipy.html
+
+from pylab import plot,show
+from numpy import vstack,array
+from numpy.random import rand
+from scipy.cluster.vq import kmeans,vq
+
+# data generation
+data = np.array(diamonds_test_R_cluster_trimmed)
+
+# computing K-Means with K = 2 (2 clusters)
+centroids,_ = kmeans(data,2)
+# assign each sample to a cluster
+idx,_ = vq(data,centroids)
+
+# some plotting using numpy's logical indexing
+plot(data[idx==0,0],data[idx==0,1],'ob',
+     data[idx==1,0],data[idx==1,1],'or')
+plot(centroids[:,0],centroids[:,1],'sg',markersize=8)
+
+show()
+
+# now with K = 3 (3 clusters)
+centroids,_ = kmeans(data,3)
+idx,_ = vq(data,centroids)
+
+plot(data[idx==0,0],data[idx==0,1],'ob',
+     data[idx==1,0],data[idx==1,1],'or',
+     data[idx==2,0],data[idx==2,1],'og') # third cluster points
+plot(centroids[:,0],centroids[:,1],'sm',markersize=8)
+show()
+
+# now with K = 4 (4 clusters)
+centroids,_ = kmeans(data,4)
+idx,_ = vq(data,centroids)
+
+plot(data[idx==0,0],data[idx==0,1],'ob',
+     data[idx==1,0],data[idx==1,1],'or',
+     data[idx==2,0],data[idx==2,1],'og', # third cluster points
+     data[idx==3,0],data[idx==3,1],'oy') # fourth cluster points
+plot(centroids[:,0],centroids[:,1],'sm',markersize=8)
+show()
+
+# now with K = 5 (5 clusters)
+centroids,_ = kmeans(data,5)
+idx,_ = vq(data,centroids)
+
+plot(data[idx==0,0],data[idx==0,1],'ob',
+     data[idx==1,0],data[idx==1,1],'or',
+     data[idx==2,0],data[idx==2,1],'og', # third cluster points
+     data[idx==3,0],data[idx==3,1],'oy', # fourth cluster points
+     data[idx==4,0],data[idx==4,1],'oc') # fifth cluster points
+plot(centroids[:,0],centroids[:,1],'sm',markersize=8)
+show()
+
+
+# now with K = 6 (6 clusters)
+centroids,_ = kmeans(data,6)
+idx,_ = vq(data,centroids)
+
+plot(data[idx==0,0],data[idx==0,1],'ob',
+     data[idx==1,0],data[idx==1,1],'or',
+     data[idx==2,0],data[idx==2,1],'og', # third cluster points
+     data[idx==3,0],data[idx==3,1],'oy', # fourthcluster points
+     data[idx==4,0],data[idx==4,1],'oc', # fifth cluster points
+     data[idx==5,0],data[idx==5,1],'ok') # sixth cluster points
+plot(centroids[:,0],centroids[:,1],'sm',markersize=8)
+show()
+
+
+# In[ ]:
+
+#Clustering using price and Boolean flag
+
+
+# In[97]:
+
+diamonds_test_R_cluster = diamonds_test_R   
+## Add a flag for Ideal cut only - Ideal= True, all others = False
+diamonds_test_R_cluster['ideal_flag_boolean'] = diamonds_test_R_cluster['cut'].apply(lambda x: 1 if x == 2 else 0)
+#diamonds['ideal_flag'] = diamonds['cut'].apply(lambda x: 'True' if x == 'Ideal' else 'False')
+#diamonds_test_R_cluster['ideal_flag_boolean'] = diamonds[diamonds_test_R_cluster].apply(lambda x: 1 if x == 'True' else 0)
+diamonds_test_R_cluster_trimmed = diamonds_test_R_cluster[['carat','color','clarity','depth','table','price','x','y','z','ideal_flag_boolean']]
+
+min_max_scaler = preprocessing.MinMaxScaler()
+np_scaled = min_max_scaler.fit_transform(diamonds_test_R_cluster_trimmed)
+diamonds_normalized = pd.DataFrame(np_scaled)
+#diamonds_normalized
+
+
+# In[98]:
+
+#from __future__ import print_function
+
+from sklearn.datasets import make_blobs
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_samples, silhouette_score
+
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import numpy as np
+
+print(__doc__)
+
+# Generating the sample data from make_blobs
+# This particular setting has one distinct cluster and 3 clusters placed close
+# together.
+# X, y = make_blobs(n_samples=500,
+#                   n_features=2,
+#                   centers=4,
+#                   cluster_std=1,
+#                   center_box=(-10.0, 10.0),
+#                   shuffle=True,
+#                   random_state=1)  # For reproducibility
+
+X = np.array(diamonds_test_R_cluster_trimmed)
+range_n_clusters = [2, 3, 4, 5, 6, 7, 8, 9]#range_n_clusters = [2, 3, 4, 5, 6]
+
+for n_clusters in range_n_clusters:
+    # Create a subplot with 1 row and 2 columns
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    fig.set_size_inches(18, 7)
+
+    # The 1st subplot is the silhouette plot
+    # The silhouette coefficient can range from -1, 1 but in this example all
+    # lie within [-0.1, 1]
+    ax1.set_xlim([-0.1, 1])
+    # The (n_clusters+1)*10 is for inserting blank space between silhouette
+    # plots of individual clusters, to demarcate them clearly.
+    ax1.set_ylim([0, len(X) + (n_clusters + 1) * 10])
+
+    # Initialize the clusterer with n_clusters value and a random generator
+    # seed of 10 for reproducibility.
+    clusterer = KMeans(n_clusters=n_clusters, random_state=10)
+    cluster_labels = clusterer.fit_predict(X)
+
+    # The silhouette_score gives the average value for all the samples.
+    # This gives a perspective into the density and separation of the formed
+    # clusters
+    silhouette_avg = silhouette_score(X, cluster_labels)
+    print("For n_clusters =", n_clusters,
+          "The average silhouette_score is :", silhouette_avg)
+
+    # Compute the silhouette scores for each sample
+    sample_silhouette_values = silhouette_samples(X, cluster_labels)
+
+    y_lower = 10
+    for i in range(n_clusters):
+        # Aggregate the silhouette scores for samples belonging to
+        # cluster i, and sort them
+        ith_cluster_silhouette_values =             sample_silhouette_values[cluster_labels == i]
+
+        ith_cluster_silhouette_values.sort()
+
+        size_cluster_i = ith_cluster_silhouette_values.shape[0]
+        y_upper = y_lower + size_cluster_i
+
+        color = cm.spectral(float(i) / n_clusters)
+        ax1.fill_betweenx(np.arange(y_lower, y_upper),
+                          0, ith_cluster_silhouette_values,
+                          facecolor=color, edgecolor=color, alpha=0.7)
+
+        # Label the silhouette plots with their cluster numbers at the middle
+        ax1.text(-0.05, y_lower + 0.5 * size_cluster_i, str(i))
+
+        # Compute the new y_lower for next plot
+        y_lower = y_upper + 10  # 10 for the 0 samples
+
+    ax1.set_title("The silhouette plot for the various clusters.")
+    ax1.set_xlabel("The silhouette coefficient values")
+    ax1.set_ylabel("Cluster label")
+
+    # The vertical line for average silhouette score of all the values
+    ax1.axvline(x=silhouette_avg, color="red", linestyle="--")
+
+    ax1.set_yticks([])  # Clear the yaxis labels / ticks
+    ax1.set_xticks([-0.1, 0, 0.2, 0.4, 0.6, 0.8, 1])
+
+    # 2nd Plot showing the actual clusters formed
+    colors = cm.spectral(cluster_labels.astype(float) / n_clusters)
+    ax2.scatter(X[:, 0], X[:, 1], marker='.', s=30, lw=0, alpha=0.7,
+                c=colors, edgecolor='k')
+
+    # Labeling the clusters
+    centers = clusterer.cluster_centers_
+    # Draw white circles at cluster centers
+    ax2.scatter(centers[:, 0], centers[:, 1], marker='o',
+                c="white", alpha=1, s=200, edgecolor='k')
+
+    for i, c in enumerate(centers):
+        ax2.scatter(c[0], c[1], marker='$%d$' % i, alpha=1,
+                    s=50, edgecolor='k')
+
+    ax2.set_title("The visualization of the clustered data.")
+    ax2.set_xlabel("Feature space for the 1st feature")
+    ax2.set_ylabel("Feature space for the 2nd feature")
+
+    plt.suptitle(("Silhouette analysis for KMeans clustering using price and ideal_flag on R-split train data "
+                  "with n_clusters = %d" % n_clusters),
+                 fontsize=14, fontweight='bold')
+
+    plt.show()
+
+
+# In[68]:
+
+diamonds_test_R.head()
+
+
+# In[ ]:
+
+#Clustering using lprice and Boolean flag
+
+
+# In[99]:
+
+diamonds_test_R_cluster = diamonds_test_R   
+## Add a flag for Ideal cut only - Ideal= True, all others = False
+diamonds_test_R_cluster['ideal_flag_boolean'] = diamonds_test_R_cluster['cut'].apply(lambda x: 1 if x == 2 else 0)
+#diamonds['ideal_flag'] = diamonds['cut'].apply(lambda x: 'True' if x == 'Ideal' else 'False')
+#diamonds_test_R_cluster['ideal_flag_boolean'] = diamonds[diamonds_test_R_cluster].apply(lambda x: 1 if x == 'True' else 0)
+diamonds_test_R_cluster_trimmed = diamonds_test_R_cluster[['carat','color','clarity','depth','table','lprice','x','y','z','ideal_flag_boolean']]
+
+min_max_scaler = preprocessing.MinMaxScaler()
+np_scaled = min_max_scaler.fit_transform(diamonds_test_R_cluster_trimmed)
+diamonds_normalized = pd.DataFrame(np_scaled)
+#diamonds_normalized
+
+
+# In[ ]:
+
+#lprice and Boolean
+
+
+# In[100]:
+
+from sklearn.datasets import make_blobs
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_samples, silhouette_score
+
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import numpy as np
+
+X = np.array(diamonds_test_R_cluster_trimmed)
+range_n_clusters = [2, 3, 4, 5, 6, 7, 8, 9]#range_n_clusters = [2, 3, 4, 5, 6]
+
+for n_clusters in range_n_clusters:
+    # Create a subplot with 1 row and 2 columns
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    fig.set_size_inches(18, 7)
+
+    # The 1st subplot is the silhouette plot
+    # The silhouette coefficient can range from -1, 1 but in this example all
+    # lie within [-0.1, 1]
+    ax1.set_xlim([-0.1, 1])
+    # The (n_clusters+1)*10 is for inserting blank space between silhouette
+    # plots of individual clusters, to demarcate them clearly.
+    ax1.set_ylim([0, len(X) + (n_clusters + 1) * 10])
+
+    # Initialize the clusterer with n_clusters value and a random generator
+    # seed of 10 for reproducibility.
+    clusterer = KMeans(n_clusters=n_clusters, random_state=10)
+    cluster_labels = clusterer.fit_predict(X)
+
+    # The silhouette_score gives the average value for all the samples.
+    # This gives a perspective into the density and separation of the formed
+    # clusters
+    silhouette_avg = silhouette_score(X, cluster_labels)
+    print("For n_clusters =", n_clusters,
+          "The average silhouette_score is :", silhouette_avg)
+
+    # Compute the silhouette scores for each sample
+    sample_silhouette_values = silhouette_samples(X, cluster_labels)
+
+    y_lower = 10
+    for i in range(n_clusters):
+        # Aggregate the silhouette scores for samples belonging to
+        # cluster i, and sort them
+        ith_cluster_silhouette_values =             sample_silhouette_values[cluster_labels == i]
+
+        ith_cluster_silhouette_values.sort()
+
+        size_cluster_i = ith_cluster_silhouette_values.shape[0]
+        y_upper = y_lower + size_cluster_i
+
+        color = cm.spectral(float(i) / n_clusters)
+        ax1.fill_betweenx(np.arange(y_lower, y_upper),
+                          0, ith_cluster_silhouette_values,
+                          facecolor=color, edgecolor=color, alpha=0.7)
+
+        # Label the silhouette plots with their cluster numbers at the middle
+        ax1.text(-0.05, y_lower + 0.5 * size_cluster_i, str(i))
+
+        # Compute the new y_lower for next plot
+        y_lower = y_upper + 10  # 10 for the 0 samples
+
+    ax1.set_title("The silhouette plot for the various clusters.")
+    ax1.set_xlabel("The silhouette coefficient values")
+    ax1.set_ylabel("Cluster label")
+
+    # The vertical line for average silhouette score of all the values
+    ax1.axvline(x=silhouette_avg, color="red", linestyle="--")
+
+    ax1.set_yticks([])  # Clear the yaxis labels / ticks
+    ax1.set_xticks([-0.1, 0, 0.2, 0.4, 0.6, 0.8, 1])
+
+    # 2nd Plot showing the actual clusters formed
+    colors = cm.spectral(cluster_labels.astype(float) / n_clusters)
+    ax2.scatter(X[:, 0], X[:, 1], marker='.', s=30, lw=0, alpha=0.7,
+                c=colors, edgecolor='k')
+
+    # Labeling the clusters
+    centers = clusterer.cluster_centers_
+    # Draw white circles at cluster centers
+    ax2.scatter(centers[:, 0], centers[:, 1], marker='o',
+                c="white", alpha=1, s=200, edgecolor='k')
+
+    for i, c in enumerate(centers):
+        ax2.scatter(c[0], c[1], marker='$%d$' % i, alpha=1,
+                    s=50, edgecolor='k')
+
+    ax2.set_title("The visualization of the clustered data.")
+    ax2.set_xlabel("Feature space for the 1st feature")
+    ax2.set_ylabel("Feature space for the 2nd feature")
+
+    plt.suptitle(("Silhouette analysis for KMeans clustering using lprice and ideal_flag on R-split train data  "
+                  "with n_clusters = %d" % n_clusters),
+                 fontsize=14, fontweight='bold')
+
+    plt.show()
+
+
+
+# In[ ]:
+
+#Try lprice and cut http://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_analysis.html#sphx-glr-auto-examples-cluster-plot-kmeans-silhouette-analysis-py
+
+
+# In[101]:
+
+diamonds_test_R_cluster = diamonds_test_R   
+## Add a flag for Ideal cut only - Ideal= True, all others = False
+diamonds_test_R_cluster['ideal_flag_boolean'] = diamonds_test_R_cluster['cut'].apply(lambda x: 1 if x == 2 else 0)
+#diamonds['ideal_flag'] = diamonds['cut'].apply(lambda x: 'True' if x == 'Ideal' else 'False')
+#diamonds_test_R_cluster['ideal_flag_boolean'] = diamonds[diamonds_test_R_cluster].apply(lambda x: 1 if x == 'True' else 0)
+diamonds_test_R_cluster_trimmed = diamonds_test_R_cluster[['carat','color','clarity','depth','table','lprice','x','y','z','cut']]
+
+min_max_scaler = preprocessing.MinMaxScaler()
+np_scaled = min_max_scaler.fit_transform(diamonds_test_R_cluster_trimmed)
+diamonds_normalized = pd.DataFrame(np_scaled)
+#diamonds_normalized
+
+
+# In[103]:
+
+from sklearn.datasets import make_blobs
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_samples, silhouette_score
+
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import numpy as np
+
+X = np.array(diamonds_test_R_cluster_trimmed)
+range_n_clusters = [2, 3, 4, 5, 6, 7, 8, 9]#range_n_clusters = [2, 3, 4, 5, 6]
+
+for n_clusters in range_n_clusters:
+    # Create a subplot with 1 row and 2 columns
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    fig.set_size_inches(18, 7)
+
+    # The 1st subplot is the silhouette plot
+    # The silhouette coefficient can range from -1, 1 but in this example all
+    # lie within [-0.1, 1]
+    ax1.set_xlim([-0.1, 1])
+    # The (n_clusters+1)*10 is for inserting blank space between silhouette
+    # plots of individual clusters, to demarcate them clearly.
+    ax1.set_ylim([0, len(X) + (n_clusters + 1) * 10])
+
+    # Initialize the clusterer with n_clusters value and a random generator
+    # seed of 10 for reproducibility.
+    clusterer = KMeans(n_clusters=n_clusters, random_state=10)
+    cluster_labels = clusterer.fit_predict(X)
+
+    # The silhouette_score gives the average value for all the samples.
+    # This gives a perspective into the density and separation of the formed
+    # clusters
+    silhouette_avg = silhouette_score(X, cluster_labels)
+    print("For n_clusters =", n_clusters,
+          "The average silhouette_score is :", silhouette_avg)
+
+    # Compute the silhouette scores for each sample
+    sample_silhouette_values = silhouette_samples(X, cluster_labels)
+
+    y_lower = 10
+    for i in range(n_clusters):
+        # Aggregate the silhouette scores for samples belonging to
+        # cluster i, and sort them
+        ith_cluster_silhouette_values =             sample_silhouette_values[cluster_labels == i]
+
+        ith_cluster_silhouette_values.sort()
+
+        size_cluster_i = ith_cluster_silhouette_values.shape[0]
+        y_upper = y_lower + size_cluster_i
+
+        color = cm.spectral(float(i) / n_clusters)
+        ax1.fill_betweenx(np.arange(y_lower, y_upper),
+                          0, ith_cluster_silhouette_values,
+                          facecolor=color, edgecolor=color, alpha=0.7)
+
+        # Label the silhouette plots with their cluster numbers at the middle
+        ax1.text(-0.05, y_lower + 0.5 * size_cluster_i, str(i))
+
+        # Compute the new y_lower for next plot
+        y_lower = y_upper + 10  # 10 for the 0 samples
+
+    ax1.set_title("The silhouette plot for the various clusters.")
+    ax1.set_xlabel("The silhouette coefficient values")
+    ax1.set_ylabel("Cluster label")
+
+    # The vertical line for average silhouette score of all the values
+    ax1.axvline(x=silhouette_avg, color="red", linestyle="--")
+
+    ax1.set_yticks([])  # Clear the yaxis labels / ticks
+    ax1.set_xticks([-0.1, 0, 0.2, 0.4, 0.6, 0.8, 1])
+
+    # 2nd Plot showing the actual clusters formed
+    colors = cm.spectral(cluster_labels.astype(float) / n_clusters)
+    ax2.scatter(X[:, 0], X[:, 1], marker='.', s=30, lw=0, alpha=0.7,
+                c=colors, edgecolor='k')
+
+    # Labeling the clusters
+    centers = clusterer.cluster_centers_
+    # Draw white circles at cluster centers
+    ax2.scatter(centers[:, 0], centers[:, 1], marker='o',
+                c="white", alpha=1, s=200, edgecolor='k')
+
+    for i, c in enumerate(centers):
+        ax2.scatter(c[0], c[1], marker='$%d$' % i, alpha=1,
+                    s=50, edgecolor='k')
+
+    ax2.set_title("The visualization of the clustered data.")
+    ax2.set_xlabel("Feature space for the 1st feature")
+    ax2.set_ylabel("Feature space for the 2nd feature")
+
+    plt.suptitle(("Silhouette analysis for KMeans clustering on lprice and cut using R-train data "
+                  "with n_clusters = %d" % n_clusters),
+                 fontsize=14, fontweight='bold')
+
+    plt.show()
+
+
+# In[ ]:
+
+#Try price and cut
+
+
+# In[104]:
+
+diamonds_test_R_cluster = diamonds_test_R   
+## Add a flag for Ideal cut only - Ideal= True, all others = False
+diamonds_test_R_cluster['ideal_flag_boolean'] = diamonds_test_R_cluster['cut'].apply(lambda x: 1 if x == 2 else 0)
+#diamonds['ideal_flag'] = diamonds['cut'].apply(lambda x: 'True' if x == 'Ideal' else 'False')
+#diamonds_test_R_cluster['ideal_flag_boolean'] = diamonds[diamonds_test_R_cluster].apply(lambda x: 1 if x == 'True' else 0)
+diamonds_test_R_cluster_trimmed = diamonds_test_R_cluster[['carat','color','clarity','depth','table','price','x','y','z','cut']]
+
+min_max_scaler = preprocessing.MinMaxScaler()
+np_scaled = min_max_scaler.fit_transform(diamonds_test_R_cluster_trimmed)
+diamonds_normalized = pd.DataFrame(np_scaled)
+#diamonds_normalized
+
+
+# In[105]:
+
+from sklearn.datasets import make_blobs
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_samples, silhouette_score
+
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import numpy as np
+
+#print(__doc__)
+
+# Generating the sample data from make_blobs
+# This particular setting has one distinct cluster and 3 clusters placed close
+# together.
+# X, y = make_blobs(n_samples=500,
+#                   n_features=2,
+#                   centers=4,
+#                   cluster_std=1,
+#                   center_box=(-10.0, 10.0),
+#                   shuffle=True,
+#                   random_state=1)  # For reproducibility
+X = np.array(diamonds_test_R_cluster_trimmed)
+range_n_clusters = [2, 3, 4, 5, 6, 7, 8, 9]#range_n_clusters = [2, 3, 4, 5, 6]
+
+for n_clusters in range_n_clusters:
+    # Create a subplot with 1 row and 2 columns
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    fig.set_size_inches(18, 7)
+
+    # The 1st subplot is the silhouette plot
+    # The silhouette coefficient can range from -1, 1 but in this example all
+    # lie within [-0.1, 1]
+    ax1.set_xlim([-0.1, 1])
+    # The (n_clusters+1)*10 is for inserting blank space between silhouette
+    # plots of individual clusters, to demarcate them clearly.
+    ax1.set_ylim([0, len(X) + (n_clusters + 1) * 10])
+
+    # Initialize the clusterer with n_clusters value and a random generator
+    # seed of 10 for reproducibility.
+    clusterer = KMeans(n_clusters=n_clusters, random_state=10)
+    cluster_labels = clusterer.fit_predict(X)
+
+    # The silhouette_score gives the average value for all the samples.
+    # This gives a perspective into the density and separation of the formed
+    # clusters
+    silhouette_avg = silhouette_score(X, cluster_labels)
+    print("For n_clusters =", n_clusters,
+          "The average silhouette_score is :", silhouette_avg)
+
+    # Compute the silhouette scores for each sample
+    sample_silhouette_values = silhouette_samples(X, cluster_labels)
+
+    y_lower = 10
+    for i in range(n_clusters):
+        # Aggregate the silhouette scores for samples belonging to
+        # cluster i, and sort them
+        ith_cluster_silhouette_values =             sample_silhouette_values[cluster_labels == i]
+
+        ith_cluster_silhouette_values.sort()
+
+        size_cluster_i = ith_cluster_silhouette_values.shape[0]
+        y_upper = y_lower + size_cluster_i
+
+        color = cm.spectral(float(i) / n_clusters)
+        ax1.fill_betweenx(np.arange(y_lower, y_upper),
+                          0, ith_cluster_silhouette_values,
+                          facecolor=color, edgecolor=color, alpha=0.7)
+
+        # Label the silhouette plots with their cluster numbers at the middle
+        ax1.text(-0.05, y_lower + 0.5 * size_cluster_i, str(i))
+
+        # Compute the new y_lower for next plot
+        y_lower = y_upper + 10  # 10 for the 0 samples
+
+    ax1.set_title("The silhouette plot for the various clusters.")
+    ax1.set_xlabel("The silhouette coefficient values")
+    ax1.set_ylabel("Cluster label")
+
+    # The vertical line for average silhouette score of all the values
+    ax1.axvline(x=silhouette_avg, color="red", linestyle="--")
+
+    ax1.set_yticks([])  # Clear the yaxis labels / ticks
+    ax1.set_xticks([-0.1, 0, 0.2, 0.4, 0.6, 0.8, 1])
+
+    # 2nd Plot showing the actual clusters formed
+    colors = cm.spectral(cluster_labels.astype(float) / n_clusters)
+    ax2.scatter(X[:, 0], X[:, 1], marker='.', s=30, lw=0, alpha=0.7,
+                c=colors, edgecolor='k')
+
+    # Labeling the clusters
+    centers = clusterer.cluster_centers_
+    # Draw white circles at cluster centers
+    ax2.scatter(centers[:, 0], centers[:, 1], marker='o',
+                c="white", alpha=1, s=200, edgecolor='k')
+
+    for i, c in enumerate(centers):
+        ax2.scatter(c[0], c[1], marker='$%d$' % i, alpha=1,
+                    s=50, edgecolor='k')
+
+    ax2.set_title("The visualization of the clustered data.")
+    ax2.set_xlabel("Feature space for the 1st feature")
+    ax2.set_ylabel("Feature space for the 2nd feature")
+
+    plt.suptitle(("Silhouette analysis for KMeans clustering on price and cut using R-train data "
+                  "with n_clusters = %d" % n_clusters),
+                 fontsize=14, fontweight='bold')
+
+    plt.show()
+
+
+# In[ ]:
+
+
+
+
+# In[ ]:
+
+
+
+
+# In[ ]:
+
+
+
+
+# In[106]:
+
+diamonds_test_R_cluster = diamonds_test_R   
+## Add a flag for Ideal cut only - Ideal= True, all others = False
+diamonds_test_R_cluster['ideal_flag_boolean'] = diamonds_test_R_cluster['cut'].apply(lambda x: 1 if x == 2 else 0)
+#diamonds['ideal_flag'] = diamonds['cut'].apply(lambda x: 'True' if x == 'Ideal' else 'False')
+#diamonds_test_R_cluster['ideal_flag_boolean'] = diamonds[diamonds_test_R_cluster].apply(lambda x: 1 if x == 'True' else 0)
+diamonds_test_R_cluster_trimmed = diamonds_test_R_cluster[['carat','color','clarity','depth','table','lprice','x','y','z','ideal_flag_boolean']]
+
+min_max_scaler = preprocessing.MinMaxScaler()
+np_scaled = min_max_scaler.fit_transform(diamonds_test_R_cluster_trimmed)
+diamonds_normalized = pd.DataFrame(np_scaled)
+#diamonds_normalized
+
+
+# In[107]:
+
+#print(__doc__)
+
+import numpy as np
+
+from sklearn.cluster import DBSCAN
+from sklearn import metrics
+from sklearn.datasets.samples_generator import make_blobs
+from sklearn.preprocessing import StandardScaler
+
+
+# #############################################################################
+# # Generate sample data
+# centers = [[1, 1], [-1, -1], [1, -1]]
+# X, labels_true = make_blobs(n_samples=750, centers=centers, cluster_std=0.4,
+#                             random_state=0)
+
+# X = StandardScaler().fit_transform(X)
+X = np.array(diamonds_test_R_cluster_trimmed)
+# #############################################################################
+# Compute DBSCAN
+db = DBSCAN(eps=0.3, min_samples=10).fit(X)
+core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
+core_samples_mask[db.core_sample_indices_] = True
+labels = db.labels_
+
+# Number of clusters in labels, ignoring noise if present.
+n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+
+
+
+print('Estimated number of clusters: %d' % n_clusters_)
+# print("Homogeneity: %0.3f" % metrics.homogeneity_score(labels_true, labels))
+# print("Completeness: %0.3f" % metrics.completeness_score(labels_true, labels))
+# print("V-measure: %0.3f" % metrics.v_measure_score(labels_true, labels))
+# print("Adjusted Rand Index: %0.3f"
+#       % metrics.adjusted_rand_score(labels_true, labels))
+# print("Adjusted Mutual Information: %0.3f"
+#       % metrics.adjusted_mutual_info_score(labels_true, labels))
+print("Silhouette Coefficient: %0.3f"
+      % metrics.silhouette_score(X, labels))
+
+# # #############################################################################
+# Plot result
+import matplotlib.pyplot as plt
+
+# Black removed and is used for noise instead.
+unique_labels = set(labels)
+colors = [plt.cm.Spectral(each)
+          for each in np.linspace(0, 1, len(unique_labels))]
+for k, col in zip(unique_labels, colors):
+    if k == -1:
+        # Black used for noise.
+        col = [0, 0, 0, 1]
+
+    class_member_mask = (labels == k)
+
+    xy = X[class_member_mask & core_samples_mask]
+    plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
+             markeredgecolor='k', markersize=14)
+
+    xy = X[class_member_mask & ~core_samples_mask]
+    plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
+             markeredgecolor='k', markersize=6)
+
+plt.title('Estimated number of clusters: %d' % n_clusters_)
+plt.show()
+
+
+# In[ ]:
+
+#DBSCAN #Try lprice and  cut
+
+
+# In[108]:
+
+
+diamonds_test_R_cluster = diamonds_test_R   
+## Add a flag for Ideal cut only - Ideal= True, all others = False
+diamonds_test_R_cluster['ideal_flag_boolean'] = diamonds_test_R_cluster['cut'].apply(lambda x: 1 if x == 2 else 0)
+#diamonds['ideal_flag'] = diamonds['cut'].apply(lambda x: 'True' if x == 'Ideal' else 'False')
+#diamonds_test_R_cluster['ideal_flag_boolean'] = diamonds[diamonds_test_R_cluster].apply(lambda x: 1 if x == 'True' else 0)
+diamonds_test_R_cluster_trimmed = diamonds_test_R_cluster[['carat','color','clarity','depth','table','lprice','x','y','z','ideal_flag_boolean']]
+
+min_max_scaler = preprocessing.MinMaxScaler()
+np_scaled = min_max_scaler.fit_transform(diamonds_test_R_cluster_trimmed)
+diamonds_normalized = pd.DataFrame(np_scaled)
+#diamonds_normalized
+
+
+# In[109]:
+
+import numpy as np
+
+from sklearn.cluster import DBSCAN
+from sklearn import metrics
+from sklearn.datasets.samples_generator import make_blobs
+from sklearn.preprocessing import StandardScaler
+
+
+# #############################################################################
+# # Generate sample data
+# centers = [[1, 1], [-1, -1], [1, -1]]
+# X, labels_true = make_blobs(n_samples=750, centers=centers, cluster_std=0.4,
+#                             random_state=0)
+
+# X = StandardScaler().fit_transform(X)
+X = np.array(diamonds_test_R_cluster_trimmed)
+# #############################################################################
+# Compute DBSCAN
+db = DBSCAN(eps=0.3, min_samples=10).fit(X)
+core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
+core_samples_mask[db.core_sample_indices_] = True
+labels = db.labels_
+
+# Number of clusters in labels, ignoring noise if present.
+n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+
+
+
+print('Estimated number of clusters: %d' % n_clusters_)
+# print("Homogeneity: %0.3f" % metrics.homogeneity_score(labels_true, labels))
+# print("Completeness: %0.3f" % metrics.completeness_score(labels_true, labels))
+# print("V-measure: %0.3f" % metrics.v_measure_score(labels_true, labels))
+# print("Adjusted Rand Index: %0.3f"
+#       % metrics.adjusted_rand_score(labels_true, labels))
+# print("Adjusted Mutual Information: %0.3f"
+#       % metrics.adjusted_mutual_info_score(labels_true, labels))
+print("Silhouette Coefficient: %0.3f"
+      % metrics.silhouette_score(X, labels))
+
+# # #############################################################################
+# Plot result
+import matplotlib.pyplot as plt
+
+# Black removed and is used for noise instead.
+unique_labels = set(labels)
+colors = [plt.cm.Spectral(each)
+          for each in np.linspace(0, 1, len(unique_labels))]
+for k, col in zip(unique_labels, colors):
+    if k == -1:
+        # Black used for noise.
+        col = [0, 0, 0, 1]
+
+    class_member_mask = (labels == k)
+
+    xy = X[class_member_mask & core_samples_mask]
+    plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
+             markeredgecolor='k', markersize=14)
+
+    xy = X[class_member_mask & ~core_samples_mask]
+    plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
+             markeredgecolor='k', markersize=6)
+
+plt.title('Estimated number of clusters: %d' % n_clusters_)
+plt.show()
+
+
+# In[15]:
+
+diamonds_train_R.head()
+
+
 # # Principal Component Analysis
 
 # In[3]:
@@ -9208,6 +10298,94 @@ plt.close()
 # In[45]:
 
 print(pca.fit(X))
+
+
+# In[3]:
+
+#print(__doc__)
+
+
+# Code source: Gaël Varoquaux
+# License: BSD 3 clause
+
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+
+from sklearn import decomposition
+from sklearn import datasets
+
+np.random.seed(5)
+
+centers = [[1, 1], [-1, -1]]#, [1, -1]]
+
+#We have 'cut' included but the target is ideal_flag...a predictor which define the ideal_flag
+#We have dropped 'cut' as the target is ideal_flag which is based on cut value
+train_X=diamonds_train[['carat','clarity','color','x','y','z','depth','table','lprice']]# taking the training data features
+train_y=diamonds_train.ideal_flag# output of our training data
+test_X=diamonds_test[['carat','clarity','color','x','y','z','depth','table','lprice']] # taking test data features
+test_y=diamonds_test.ideal_flag   #output value of test data
+
+
+X=np.array(train_X)
+y=np.array(train_y)
+
+fig = plt.figure(1, figsize=(4, 3))
+plt.clf()
+ax = Axes3D(fig, rect=[0, 0, .95, 1], elev=48, azim=134)
+
+plt.cla()
+pca = decomposition.PCA(n_components=9)
+pca.fit(X)
+X = pca.transform(X)
+
+for name, label in [('True', 1), ('False', 0)]:
+    #ax.text3D(X[y == label, 0].mean(),
+    #X[y == label, 1].mean() + 1.5))
+    ax.scatter(X[:, 0], X[:, 1], c = np.random.rand(3,), cmap=plt.cm.spectral)
+    #ax.w_xaxis.set_ticklabels([])
+    #ax.w_yaxis.set_ticklabels([])
+    #ax.w_zaxis.set_ticklabels([])
+
+plt.show()
+
+import pylab as pl
+pl.scatter(X[:, 0], X[:, 1],  c = np.random.rand(3,))
+
+# plt.figure(figsize=(12, 6))
+# plt.subplot(1, 2, 1)
+# my_title=('Scatter Plot PCA: %s'%(pca))
+# for name, label in [('True', 1), ('False', 0)]:
+#     plt.title(my_title +'\n')
+# #plt.title('Prediction')
+#     plt.scatter(X[,X[1])
+#     plt.legend(loc='upper right')
+# #plt.xlabel('Actual')
+# #plt.ylabel('Predicted')
+
+plt.show()
+
+# Release memory.
+plt.clf()
+plt.close()
+
+
+# for name, label in [('True', 1), ('False', 0)]:
+#     ax.text3D(X[y == label, 0].mean(),
+#               X[y == label, 1].mean() + 1.5,
+#               name,
+#               horizontalalignment='center',
+#               bbox=dict(alpha=.5, edgecolor='w', facecolor='w'))
+# # Reorder the labels to have colors matching the cluster results
+# y = np.choose(y, [1, 0]).astype(np.float)
+# ax.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.spectral)
+# ax.scatter(X[:, 0], X[:, 1])
+# ax.w_xaxis.set_ticklabels([])
+# ax.w_yaxis.set_ticklabels([])
+# ax.w_zaxis.set_ticklabels([])
+
+#plt.show()
 
 
 # In[117]:
@@ -10322,10 +11500,102 @@ prediction=model.predict(test_X)
 print('The accuracy of the KNN is',metrics.accuracy_score(prediction,test_y))
 
 
+# In[ ]:
+
+#Plot decision tree
+
+
+# In[5]:
+
+# importing alll the necessary packages to use the various classification algorithms
+from sklearn.linear_model import LogisticRegression  # for Logistic Regression algorithm
+from sklearn.cross_validation import train_test_split #to split the dataset for training and testing
+from sklearn.neighbors import KNeighborsClassifier  # for K nearest neighbours
+from sklearn import svm  #for Support Vector Machine (SVM) Algorithm
+from sklearn import metrics #for checking the model accuracy
+from sklearn.tree import DecisionTreeClassifier #for using Decision Tree Algoithm
+
+import graphviz 
+seed=(1976)
+
+from sklearn import svm, datasets
+from sklearn import metrics
+
+
+# train_X=diamonds_train_R[['y','x','z','carat','clarity', 'color', 'depth', 'table','lprice']]# taking the training data features
+# train_y=diamonds_train_R[['ideal_flag']] # output of our training data
+# test_X =diamonds_test_R[['y','x','z','carat','clarity', 'color', 'depth', 'table','lprice']] # taking test data features
+# test_y=diamonds_test_R[['ideal_flag']]  #output value of test data
+
+#We have 'cut' included but the target is ideal_flag...a predictor which define the ideal_flag
+#We have dropped 'cut' as the target is ideal_flag which is based on cut value
+classification_price_train_X = diamonds_train_R[['carat','clarity','color','x','y','z','depth','table','lprice']]# taking the training data features
+classification_price_train_y = diamonds_train_R.ideal_flag# output of our training data
+classification_price_test_X = diamonds_test_R[['carat','clarity','color','x','y','z','depth','table','lprice']] # taking test data features
+classification_price_test_y = diamonds_test_R.ideal_flag   #output value of test data
+
+
+train_X = classification_price_train_X
+train_y = classification_price_train_y
+test_X = classification_price_test_X
+test_y = classification_price_test_y
+
+#SVM 
+model = svm.SVC(C=0.1) #select the algorithm
+model.fit(train_X,train_y) # we train the algorithm with the training data and the training output
+prediction=model.predict(test_X) #now we pass the testing data to the trained algorithm
+
+print('The accuracy of the SVM is:',metrics.accuracy_score(prediction,test_y))#now we check the accuracy of the algorithm. 
+#we pass the predicted output by the model and the actual output
+
+#SVM is giving very good accuracy . We will continue to check the accuracy for different models.
+
+#Now we will follow the same steps as above for training various machine learning algorithms.
+
+
+print('\n'*1)
+
+#Logistic Regression
+model = LogisticRegression()
+model.fit(train_X,train_y)
+prediction=model.predict(test_X)
+print('The accuracy of the Logistic Regression is',metrics.accuracy_score(prediction,test_y))
+
+print('\n'*1)
+
+#Decision Tree
+
+model=DecisionTreeClassifier(max_depth=20,min_samples_split = 4,min_samples_leaf = 2)
+model.fit(train_X,train_y)
+prediction=model.predict(test_X)
+print('The accuracy of the Decision Tree is',metrics.accuracy_score(prediction,test_y))
+
+#Try plot a Tree graph
+dot_data = tree.export_graphviz(model, out_file=None) 
+graph = graphviz.Source(dot_data) 
+graph.render("ideal_flag") 
+
+print('\n'*1)
+
+#K-Nearest Neighbours #leaf_size = 30
+model=KNeighborsClassifier(n_neighbors=3) #n_neighbours=3 means we are trying to split them into 3 clusters
+model.fit(train_X,train_y)
+prediction=model.predict(test_X)
+print('The accuracy of the KNN is',metrics.accuracy_score(prediction,test_y))
+
+
 # In[65]:
 
 import sklearn; print(sklearn.__file__)
 (sklearn.__version__) 
+
+
+# In[9]:
+
+import graphviz 
+dot_data = tree.export_graphviz(clf, out_file=None) 
+graph = graphviz.Source(dot_data) 
+graph.render("iris") 
 
 
 # In[80]:
